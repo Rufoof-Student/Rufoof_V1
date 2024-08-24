@@ -18,6 +18,8 @@ public class ExtensionSocketServer extends WebSocketServer{
 
     public ExtensionSocketServer(int port){
         super(new InetSocketAddress(port));
+        workerThread = new Thread();
+        googleWindows = new ArrayList<>();
     }
 
     @Override
