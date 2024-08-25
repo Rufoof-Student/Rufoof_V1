@@ -6,14 +6,16 @@
       "tabs",
       "windows",
       "nativeMessaging" ,
-      "scripting"
+      "scripting",
+      "storage"
     ],
     "action": {
       "default_popup": "popup.html"
       
     },
     "background": {
-      "service_worker": "background.js"
+      "service_worker": "background.js",
+    "type": "module"
     },
     "content_scripts": [
       {

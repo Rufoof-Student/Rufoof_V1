@@ -1,66 +1,42 @@
-async function getAllTabsAndWindows() {
-  return new Promise((resolve) => {
-    chrome.windows.getAll({ populate: true }, (windows) => {
-      const tabsInfo = windows.map((window) => ({
-        windowId: window.id,
-        tabs: window.tabs.map((tab) => ({
-          tabId: tab.id,
-          title: tab.title,
-          url: tab.url,
-        })),
-      }));
-      console.log(tabsInfo);
-      resolve(tabsInfo); // Resolve the promise with tabsInfo
-    });
-  });
-}
-
+import { getAllTabsAndWindows, openAllTabsInthisWindow } from "./controller.js";
 
 let socket = new WebSocket("ws://localhost:8887"); // Use your server's IP if testing from another PC
 
 socket.onopen = function () {
   console.log("Connected to WebSocket server");
   socket.send("Hello from the browser console!");
+  // print5ra();
 };
 let urlSended = false;
 socket.onmessage = function (event) {
   console.log("Message from server: " + event.data);
-  if (!urlSended) {
-    urlSended = true;
-    let toSend = "";
-    (async () => {
-      const windows1 = await getAllTabsAndWindows();
+  const msg = JSON.parse(event.data);
+  if (msg.tag === "Question") {
+    if (msg.type === "getWindows") {
+      let toSend = "";
+      (async () => {
+        const windowsToSend = await getAllTabsAndWindows(chrome);
+        const dataJson = JSON.stringify(windowsToSend);
+        const toSend = {
+          tag: "Answer",
+          type: "Windows",
+          data: dataJson,
+        };
+        console.log(toSend);
+        const packetToSend = JSON.stringify(toSend);
+        console.log(packetToSend);
+        socket.send(packetToSend);
+      })();
+    } else if (msg.type === "openWindows") {
+      openAllTabsInthisWindow(chrome, msg.data);
 
-      if (windows1) {
-        windows1.forEach((element) => {
-          element.tabs.forEach((tab) => {
-            toSend += tab.url + "\n";
-          });
-        });
-        socket.send("" + toSend);
-      } else {
-        console.log("windows is not array " + typeof windows1);
-        console.log(windows1);
-      }
-    })();
-  }
-  if (event.data === "giveMeUrls") {
-    let toSend = "";
-    (async () => {
-      const windows1 = await getAllTabsAndWindows();
-
-      if (windows1) {
-        windows1.forEach((element) => {
-          element.tabs.forEach((tab) => {
-            toSend += tab.url + "\n";
-          });
-        });
-        socket.send("" + toSend);
-      } else {
-        console.log("windows is not array " + typeof windows1);
-        console.log(windows1);
-      }
-    })();
+      const packetToSend = {
+        tag: "Answer",
+        type: "OpenProcessIsFinished",
+        data: "",
+      };
+      socket.send(JSON.stringify(packetToSend));
+    }
   }
 };
 
@@ -71,24 +47,8 @@ socket.onclose = function (event) {
 socket.onerror = function (error) {
   console.error("WebSocket error: " + error.message);
 };
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log("hii");
-  if (request.action === "getTabsAndWindows") {
-    chrome.tabs.query({}, (tabs) => {
-      let urls = tabs.map((tab) => tab.url);
-      sendResponse({ urls: urls });
-    });
-    return true; // Indicates asynchronous response
-  }
-});
+
 console.log("hiiiii");
-function hi() {
-  console.log("hiiiii");
-  chrome.tabs.query({}, (tabs) => {
-    let urls = tabs.map((tab) => tab.url);
-    console.log(urls);
-  });
-}
 
 chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
   console.log(`Tab with ID ${tabId} was closed`);
@@ -108,7 +68,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     await chrome.alarms.onAlarm.addListener((alarm) => {
       if (alarm.name === "myAlarm") {
         console.log("Alarm triggered");
-        // Perform periodic tasks here
       }
     });
   }
@@ -117,5 +76,3 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 chrome.runtime.onStartup.addListener(() => {
   console.log("Browser started");
 });
-
-// Example: Set up an alarm to trigger a task periodically
