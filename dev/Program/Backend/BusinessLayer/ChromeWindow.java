@@ -35,9 +35,15 @@ public class ChromeWindow extends Window {
             //TODO open the chrome window then call the openwindow again
             return false;
         }else{
-
+            return false;
         }
     }
+
+
+
+	public String getId() {
+		return windowId;
+	}
 
 
 }

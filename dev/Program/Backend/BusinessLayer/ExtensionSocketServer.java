@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ExtensionSocketServer extends WebSocketServer {
 
@@ -34,6 +35,9 @@ public class ExtensionSocketServer extends WebSocketServer {
     private Object lock = new Object();
     private boolean isRecollection = false;
     private boolean isOpenProccess;
+
+    //=====
+    private ConcurrentLinkedQueue<Answer> responses=new ConcurrentLinkedQueue<>();
 
     public ExtensionSocketServer(int port) {
         super(new InetSocketAddress(port));
@@ -75,7 +79,10 @@ public class ExtensionSocketServer extends WebSocketServer {
                 dealWithQuestion(question);
             } else if (msgMap.get("tag").equals("Answer")) {
                 Answer answer = new Answer((String) msgMap.get("type"), (String) msgMap.get("data"));
-                dealWithAnswer(answer);
+                synchronized(lock){
+                    responses.add(answer);
+                    lock.notifyAll();
+                }
             }
 
         } catch (Exception ex) {
@@ -189,14 +196,14 @@ public class ExtensionSocketServer extends WebSocketServer {
                     List<Tab> tabs = new ArrayList<>();
                     tabs.add(new Tab("https://mail.google.com/mail/u/0/#inbox"));
                     ChromeWindow windows ;
-                    windows=new ChromeWindow(null, tabs,s);
+                    windows=new ChromeWindow(sc.nextLine(), tabs,s,false);
                     
-                    List<ChromeWindow> b = s.openWindows(windows);
+                    ChromeWindowToSendSocket b = s.openWindows(windows);
 
-                    for (ChromeWindow chromeWindow : b) {
+                    // for (ChromeWindow chromeWindow : b) {
 
-                        System.out.println(chromeWindow);
-                    }
+                    //     System.out.println(chromeWindow);
+                    // }
                     break;
                 default:
                     break;
@@ -211,9 +218,9 @@ public class ExtensionSocketServer extends WebSocketServer {
      * @param windowsToOpen is the list of windows that will open.
      * @return the list of new opened tabs.
      */
-    public boolean openWindows(ChromeWindow windowToOpen) {
+    public ChromeWindowToSendSocket openWindows(ChromeWindow windowToOpen) {
         if (conns.size() == 0) {
-            return false;
+            return null;
         }
         WebSocket conn = conns.get(0);
         String jsonData = getWindowsToSendAsJson(windowToOpen);
@@ -222,7 +229,7 @@ public class ExtensionSocketServer extends WebSocketServer {
             isOpenProccess = true;
             conn.send(gson.toJson(question));
             try {
-                lock.wait();
+                while(responses.size()==0) lock.wait();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -232,7 +239,10 @@ public class ExtensionSocketServer extends WebSocketServer {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            return ;
+            Answer res = responses.remove();
+            if(!res.equals("OpenProcessIsFinished")) return null;
+            System.out.println(res.data);
+            return null;
         }
         // googleWindows = getCurrentGoogleOpenedWindows();
     }
@@ -242,9 +252,9 @@ public class ExtensionSocketServer extends WebSocketServer {
         List<Tab> tabs = windowToOpen.getTabs();
         TabToSendSocket[] tabsToSend = new TabToSendSocket[tabs.size()];
         for (int j = 0; j < tabsToSend.length; j++) {
-            tabsToSend[j] = new TabToSendSocket(tabs.get(j).getUrl(), null, null);
+            tabsToSend[j] = new TabToSendSocket(tabs.get(j).getUrl(), null, tabs.get(j).getId());
         }
-        ChromeWindowToSendSocket windowsToSend = new ChromeWindowToSendSocket(null, tabsToSend);
+        ChromeWindowToSendSocket windowsToSend = new ChromeWindowToSendSocket(windowToOpen.getId(), tabsToSend);
 
         return gson.toJson(windowsToSend);
     }

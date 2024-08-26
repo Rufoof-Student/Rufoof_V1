@@ -8,7 +8,7 @@ socket.onopen = function () {
   // print5ra();
 };
 let urlSended = false;
-socket.onmessage = function (event) {
+socket.onmessage = async function (event) {
   console.log("Message from server: " + event.data);
   const msg = JSON.parse(event.data);
   if (msg.tag === "Question") {
@@ -28,12 +28,13 @@ socket.onmessage = function (event) {
         socket.send(packetToSend);
       })();
     } else if (msg.type === "openWindows") {
-      openAllTabsInthisWindow(chrome, msg.data);
-
+      
+      const windowToSendBack =JSON.stringify( await openAllTabsInthisWindow(chrome, msg.data));
+      console.log(windowToSendBack);
       const packetToSend = {
         tag: "Answer",
         type: "OpenProcessIsFinished",
-        data: "",
+        data: windowToSendBack
       };
       socket.send(JSON.stringify(packetToSend));
     }
