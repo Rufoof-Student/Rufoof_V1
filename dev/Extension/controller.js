@@ -4,7 +4,7 @@ export async function getAllTabsAndWindows(chrome) {
       const tabsInfo = windows.map((window) => ({
         windowId: window.id,
         tabs: window.tabs.map((tab) => ({
-          tabId: tab.id,
+          id: tab.id,
           title: tab.title,
           url: tab.url,
         })),
@@ -48,26 +48,36 @@ export async function openAllTabsInthisWindow(chrome, windowsDataJson) {
   console.log(window.id);
   console.log(typeof window.id);
 
-  await chrome.windows.get(window.id, async () => {
-    if (chrome.runtime.lastError) {
-      additionalTabId = await createNewWindow(window);
-      console.log("opening new window");
-    }
+  additionalTabId = await new Promise(async (resolve, reject) => {
+    await chrome.windows.get(window.id, async () => {
+      if (chrome.runtime.lastError) {
+        console.log("we joined the creating window");
+        additionalTabId = await createNewWindow(window);
+        console.log("opening new window");
+        resolve(additionalTabId);
+      } else {
+        resolve("");
+      }
+    });
   });
 
   console.log(window);
-  await window.tabs.forEach(async (tab) => {
-    const newTab = await new Promise((resolve, reject) => {
-      chrome.tabs.create(
-        { windowId: parseInt(window.id), url: tab.url },
-        (newTab) =>
-          chrome.runtime.lastError
-            ? reject(chrome.runtime.lastError)
-            : resolve(newTab)
-      );
+  await new Promise(async (resolve, reject) => {
+    await window.tabs.forEach(async (tab) => {
+      const newTab = await new Promise((resolve, reject) => {
+        chrome.tabs.create(
+          { windowId: parseInt(window.id), url: tab.url },
+          (newTab) =>
+            chrome.runtime.lastError
+              ? reject(chrome.runtime.lastError)
+              : resolve(newTab)
+        );
+      });
+      console.log("getting the id of the tab");
+      console.log(newTab);
+      tab.id = newTab.id;
+      resolve();
     });
-    console.log(newTab);
-    tab.id = newTab.id;
   });
   console.log(additionalTabId);
   // Close the new tab

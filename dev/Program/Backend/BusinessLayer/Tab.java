@@ -1,5 +1,7 @@
 package dev.Program.Backend.BusinessLayer;
 
+import dev.Program.Backend.BusinessLayer.ServerMessages.TabToSendSocket;
+
 public class Tab {
     private String url;
     private String id;
@@ -10,12 +12,20 @@ public class Tab {
         this.title=title;
         this.url=url;
     }
-    public Tab(String url){
-        
+    public Tab(String url,String title){
+        this.title=title;
         this.url=url;
     }
+    
 
 
+    public Tab(TabToSendSocket tabToSend) {
+        id = tabToSend.id;
+        title= tabToSend.tittle;
+        url= tabToSend.url;
+    }
+
+    
     @Override
     public String toString(){
         return "Tab with id:"+id+",title:"+title+",url: "+url;
@@ -27,5 +37,8 @@ public class Tab {
     }
     public String getId() {
         return id;
+    }
+    public String getTitle() {
+        return title;
     }
 }
