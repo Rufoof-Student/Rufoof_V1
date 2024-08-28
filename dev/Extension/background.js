@@ -37,6 +37,8 @@ socket.onmessage = async function (event) {
         data: windowToSendBack
       };
       socket.send(JSON.stringify(packetToSend));
+    } else if(msg.type === "close"){
+      //TODO
     }
   }
 };
