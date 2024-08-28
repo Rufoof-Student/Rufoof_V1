@@ -1,4 +1,4 @@
-package dev.Program.Backend.BusinessLayer.ServerMessages;
+package dev.Program.Backend.BusinessLayer.Server;
 
 public class Question {
     public String data;

@@ -1,6 +1,6 @@
-package dev.Program.Backend.BusinessLayer;
+package dev.Program.DTOs;
 
-import dev.Program.Backend.BusinessLayer.ServerMessages.TabToSendSocket;
+import dev.Program.Backend.BusinessLayer.Server.TabToSendSocket;
 
 public class Tab {
     private String url;
@@ -25,7 +25,7 @@ public class Tab {
         url= tabToSend.url;
     }
 
-    
+
     @Override
     public String toString(){
         return "Tab with id:"+id+",title:"+title+",url: "+url;

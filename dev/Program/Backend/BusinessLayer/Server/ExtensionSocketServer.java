@@ -1,5 +1,5 @@
 
-package dev.Program.Backend.BusinessLayer;
+package dev.Program.Backend.BusinessLayer.Server;
 
 import org.java_websocket.server.WebSocketServer;
 
@@ -9,10 +9,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import dev.Program.Backend.BusinessLayer.ServerMessages.Answer;
-import dev.Program.Backend.BusinessLayer.ServerMessages.ChromeWindowToSendSocket;
-import dev.Program.Backend.BusinessLayer.ServerMessages.Question;
-import dev.Program.Backend.BusinessLayer.ServerMessages.TabToSendSocket;
+import dev.Program.DTOs.*;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -96,7 +93,7 @@ public class ExtensionSocketServer extends WebSocketServer {
         JsonArray data = jsonParser.parse(JSONdata).getAsJsonArray();
         for (JsonElement windowJsonElement : data) {
             JsonObject windowJsonObject = windowJsonElement.getAsJsonObject();
-            googleWindows.add(new ChromeWindow(convertFromJsonToWindow(windowJsonObject),this,true));
+            googleWindows.add(new ChromeWindow(convertFromJsonToWindow(windowJsonObject),true));
         }
 
     }
@@ -173,7 +170,7 @@ public class ExtensionSocketServer extends WebSocketServer {
                     tabs.add(new Tab("https://mail.google.com/mail/u/0/#inbox",
                             "Inbox (1,201) - bhaa.hillou@gmail.com - Gmail"));
                     ChromeWindow windows;
-                    windows = new ChromeWindow(sc.nextLine(), tabs, s, false);
+                    windows = new ChromeWindow(sc.nextLine(), tabs, false);
 
                     ChromeWindowToSendSocket b = s.openWindows(windows);
 

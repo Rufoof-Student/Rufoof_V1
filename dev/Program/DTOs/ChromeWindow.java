@@ -1,28 +1,27 @@
-package dev.Program.Backend.BusinessLayer;
+package dev.Program.DTOs;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.Program.Backend.BusinessLayer.ServerMessages.ChromeWindowToSendSocket;
-import dev.Program.Backend.BusinessLayer.ServerMessages.TabToSendSocket;
-import dev.Program.Backend.DTOs.Errors;
+import dev.Program.Backend.BusinessLayer.Server.ChromeWindowToSendSocket;
+import dev.Program.Backend.BusinessLayer.Server.TabToSendSocket;
 public class ChromeWindow extends Window {
     private String windowId;
     private List<Tab> tabs;
-    private ExtensionSocketServer extension;
+    // private ExtensionSocketServer extension;
     private boolean isOpenedInDesktop;
 
-    public ChromeWindow(String windowId,List<Tab> tabs,ExtensionSocketServer server,boolean isOpened){
+    public ChromeWindow(String windowId,List<Tab> tabs,boolean isOpened){
         this.windowId= windowId;
         this.tabs=tabs;
-        extension=server;
+        // extension=server;
         isOpenedInDesktop=isOpened;
     }
 
     
 
-    public ChromeWindow(ChromeWindowToSendSocket chromeToSend, ExtensionSocketServer extensionSocketServer,boolean isOpened) {
+    public ChromeWindow(ChromeWindowToSendSocket chromeToSend, boolean isOpened) {
         windowId = chromeToSend.id;
-        extension=extensionSocketServer;
+        // extension=extensionSocketServer;
         tabs =getTabsFromTabsToSend(chromeToSend.tabs);
         isOpenedInDesktop=isOpened;
     }
@@ -59,15 +58,15 @@ public class ChromeWindow extends Window {
     public boolean openWindow() throws Exception{
         if(isOpenedInDesktop) throw new IllegalArgumentException(Errors.window_already_opened);
         isOpenedInDesktop =true;
-        if(extension.connectionIsOpenedWithGoogle()) {
-            //TODO open the chrome window and connect to the server.
-        }
-        ChromeWindowToSendSocket openedWindow = extension.openWindows(this);
-        if(openedWindow==null) {
-            return false;
-        }
-        this.windowId = openedWindow.id;
-        this.tabs=( getTabsFromTabsToSend(openedWindow.tabs));
+        // if(extension.connectionIsOpenedWithGoogle()) {
+        //     //TODO open the chrome window and connect to the server.
+        // }
+        // ChromeWindowToSendSocket openedWindow = extension.openWindows(this);
+        // if(openedWindow==null) {
+        //     return false;
+        // }
+        // this.windowId = openedWindow.id;
+        // this.tabs=( getTabsFromTabsToSend(openedWindow.tabs));
         return true;
     }
 

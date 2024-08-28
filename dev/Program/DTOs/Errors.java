@@ -1,4 +1,4 @@
-package dev.Program.Backend.DTOs;
+package dev.Program.DTOs;
 
 public class Errors {
 
