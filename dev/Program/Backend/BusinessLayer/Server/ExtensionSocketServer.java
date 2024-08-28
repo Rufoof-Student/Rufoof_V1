@@ -61,7 +61,10 @@ public class ExtensionSocketServer extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        conns.remove(conn);
+        synchronized(lock){
+            conns.remove(conn);
+            lock.notifyAll();
+        }
     }
 
     @Override
@@ -254,5 +257,36 @@ public class ExtensionSocketServer extends WebSocketServer {
 
     public boolean connectionIsOpenedWithGoogle() {
         return conns.size()!=0;
+    }
+
+    public ChromeWindow closeAllTabs(ChromeWindow window){
+
+        List<Tab> tabsToClose = window.getTabs();
+        String[] ids = new String[tabsToClose.size()];
+        for(int i=0;i<ids.length;i++){
+            ids[i] = tabsToClose.get(i).getId();
+        }
+        String dataToSend = gson.toJson(ids);
+        Question qes = new Question("Close", dataToSend);
+        String qesToSend = gson.toJson(qes);
+        synchronized(lock){
+            if(conns.size()==0) return null;
+            WebSocket con =conns.get(0);
+            con.send(qesToSend);
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            Answer res = responses.remove();
+            if(!res.type.equals("closed")) return null;
+            JsonElement data = jsonParser.parse(res.data);
+            if(data.getAsBoolean()){
+                window.markAsClosed();
+            }
+            window.markTabsAsClosed();
+            return window;
+        }
     }
 }

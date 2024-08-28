@@ -81,4 +81,18 @@ public class ChromeWindow extends Window {
 	}
 
 
+
+    public void markAsClosed() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'markAsClosed'");
+    }
+
+
+
+    public void markTabsAsClosed() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'markTabsAsClosed'");
+    }
+
+
 }
