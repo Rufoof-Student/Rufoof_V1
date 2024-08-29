@@ -175,7 +175,7 @@ public class ExtensionSocketServer extends WebSocketServer {
                     ChromeWindow windows;
                     windows = new ChromeWindow(sc.nextLine(), tabs, false);
 
-                    ChromeWindowToSendSocket b = s.openWindows(windows);
+                    ChromeWindowToSendSocket b = s.openGroub(windows);
 
                     // for (ChromeWindow chromeWindow : b) {
 
@@ -195,7 +195,7 @@ public class ExtensionSocketServer extends WebSocketServer {
      * @param windowsToOpen is the list of windows that will open.
      * @return the list of new opened tabs.
      */
-    public ChromeWindowToSendSocket openWindows(ChromeWindow windowToOpen) {
+    public ChromeWindowToSendSocket openGroub(ChromeWindow windowToOpen) {
         if (conns.size() == 0) {
             return null;
         }
@@ -245,7 +245,7 @@ public class ExtensionSocketServer extends WebSocketServer {
 
     private String getWindowsToSendAsJson(ChromeWindow windowToOpen) {
 
-        List<Tab> tabs = windowToOpen.getTabs();
+        List<Tab> tabs = windowToOpen.getFreeTabs();
         TabToSendSocket[] tabsToSend = new TabToSendSocket[tabs.size()];
         for (int j = 0; j < tabsToSend.length; j++) {
             tabsToSend[j] = new TabToSendSocket(tabs.get(j).getUrl(), tabs.get(j).getTitle(), tabs.get(j).getId());
@@ -261,7 +261,7 @@ public class ExtensionSocketServer extends WebSocketServer {
 
     public ChromeWindow closeAllTabs(ChromeWindow window){
 
-        List<Tab> tabsToClose = window.getTabs();
+        List<Tab> tabsToClose = window.getFreeTabs();
         String[] ids = new String[tabsToClose.size()];
         for(int i=0;i<ids.length;i++){
             ids[i] = tabsToClose.get(i).getId();

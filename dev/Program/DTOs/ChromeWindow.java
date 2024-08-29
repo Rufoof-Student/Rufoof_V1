@@ -1,28 +1,34 @@
 package dev.Program.DTOs;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import dev.Program.Backend.BusinessLayer.Server.ChromeWindowToSendSocket;
 import dev.Program.Backend.BusinessLayer.Server.TabToSendSocket;
 public class ChromeWindow extends Window {
+    private int chromeId;
     private String windowId;
-    private List<Tab> tabs;
+    private List<Tab> freeTabs;
+    private Map<Integer,Group> groupInShelfId;
     // private ExtensionSocketServer extension;
     private boolean isOpenedInDesktop;
 
     public ChromeWindow(String windowId,List<Tab> tabs,boolean isOpened){
         this.windowId= windowId;
-        this.tabs=tabs;
+        this.freeTabs=tabs;
         // extension=server;
         isOpenedInDesktop=isOpened;
     }
 
+    public void setChromeId(int id){
+        chromeId=id;
+    }
     
 
     public ChromeWindow(ChromeWindowToSendSocket chromeToSend, boolean isOpened) {
         windowId = chromeToSend.id;
         // extension=extensionSocketServer;
-        tabs =getTabsFromTabsToSend(chromeToSend.tabs);
+        freeTabs =getTabsFromTabsToSend(chromeToSend.tabs);
         isOpenedInDesktop=isOpened;
     }
 
@@ -38,14 +44,14 @@ public class ChromeWindow extends Window {
     @Override
     public String toString(){
         String s = "-Window with id:"+ windowId+" .\n";
-        for (Tab tab : tabs) {
+        for (Tab tab : freeTabs) {
             s+=tab.toString()+'\n';
         } 
         return s;
     }
 
-    public List<Tab> getTabs() {
-        return tabs;
+    public List<Tab> getFreeTabs() {
+        return freeTabs;
     }
 
 
