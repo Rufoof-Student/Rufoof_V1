@@ -100,5 +100,9 @@ public class ChromeWindow extends Window {
         throw new UnsupportedOperationException("Unimplemented method 'markTabsAsClosed'");
     }
 
+    public int getChromeId() {
+        return chromeId;
+    }
+
 
 }

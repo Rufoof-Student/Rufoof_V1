@@ -141,7 +141,8 @@ public class ExtensionSocketServer extends WebSocketServer {
                 Answer res = responses.remove();
                 if (!res.type.equals("Windows"))
                     return null;
-                refillWindowsFromJSON(res.data);
+                // refillWindowsFromJSON(res.data);
+                System.out.println(res.data);
             }
             return googleWindows;
 
@@ -248,7 +249,7 @@ public class ExtensionSocketServer extends WebSocketServer {
         List<Tab> tabs = windowToOpen.getFreeTabs();
         TabToSendSocket[] tabsToSend = new TabToSendSocket[tabs.size()];
         for (int j = 0; j < tabsToSend.length; j++) {
-            tabsToSend[j] = new TabToSendSocket(tabs.get(j).getUrl(), tabs.get(j).getTitle(), tabs.get(j).getId());
+            tabsToSend[j] = new TabToSendSocket(tabs.get(j).getUrl(), tabs.get(j).getTitle(), tabs.get(j).getNativeTabId());
         }
         ChromeWindowToSendSocket windowsToSend = new ChromeWindowToSendSocket(windowToOpen.getId(), tabsToSend);
 
@@ -264,7 +265,7 @@ public class ExtensionSocketServer extends WebSocketServer {
         List<Tab> tabsToClose = window.getFreeTabs();
         String[] ids = new String[tabsToClose.size()];
         for(int i=0;i<ids.length;i++){
-            ids[i] = tabsToClose.get(i).getId();
+            ids[i] = tabsToClose.get(i).getNativeTabId();
         }
         String dataToSend = gson.toJson(ids);
         Question qes = new Question("Close", dataToSend);
@@ -288,5 +289,10 @@ public class ExtensionSocketServer extends WebSocketServer {
             window.markTabsAsClosed();
             return window;
         }
+    }
+
+    public List<Tab> getFreeTabs() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getFreeTabs'");
     }
 }

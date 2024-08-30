@@ -19,11 +19,9 @@ public class ChromeExtracion {
 
     public ChromeExtracion(ExtensionSocketServer server) {
         this.server = server;
-        idCounter = 0;
         runningWindows = server.getCurrentGoogleOpenedWindows();
         for (ChromeWindow chromeWindow : runningWindows) {
-            chromeWindow.setChromeId(idCounter);
-            idCounter++;
+            idCounter = idCounter<chromeWindow.getChromeId()?chromeWindow.getChromeId():idCounter;
         }
     }
 
@@ -37,6 +35,7 @@ public class ChromeExtracion {
      */
     public Shelf createNewGroups(Shelf shelf, List<Tab> tabs) {
         // TODO
+        
         return shelf;
     }
 
@@ -73,7 +72,7 @@ public class ChromeExtracion {
      */
     public List<Tab> getFreeTabs() {
         // TODO
-        return null;
+        return server.getFreeTabs();
     }
 
     private void insureConnection() {

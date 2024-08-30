@@ -1,4 +1,5 @@
-import { getAllTabsAndWindows, openAllTabsInthisWindow } from "./controller.js";
+import { getAllTabsAndWindows } from "./controller.js";
+import { openAllTabsInthisWindow } from "./openShelfController.js";
 
 let socket = new WebSocket("ws://localhost:8887"); // Use your server's IP if testing from another PC
 
