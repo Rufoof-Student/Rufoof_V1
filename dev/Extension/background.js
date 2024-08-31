@@ -1,5 +1,7 @@
-import { getAllTabsAndWindows } from "./controller.js";
-import { openAllTabsInthisWindow } from "./openShelfController.js";
+import { createGroups, getAllTabsAndWindows } from "./controller.js";
+import { openAllGroups } from "./openShelfController.js";
+import { closeAllGroups } from "./CloseController.js";
+
 
 let socket = new WebSocket("ws://localhost:8887"); // Use your server's IP if testing from another PC
 
@@ -28,18 +30,38 @@ socket.onmessage = async function (event) {
         console.log(packetToSend);
         socket.send(packetToSend);
       })();
-    } else if (msg.type === "openWindows") {
-      
-      const windowToSendBack =JSON.stringify( await openAllTabsInthisWindow(chrome, msg.data));
+    } else if (msg.type === "runGroups") {
+      const windowToSendBack = JSON.stringify(
+        await openAllGroups(chrome, msg.data)
+      );
       console.log(windowToSendBack);
       const packetToSend = {
         tag: "Answer",
-        type: "OpenProcessIsFinished",
-        data: windowToSendBack
+        type: "running",
+        data: windowToSendBack,
       };
       socket.send(JSON.stringify(packetToSend));
-    } else if(msg.type === "close"){
+    } else if (msg.type === "close") {
       //TODO
+    } else if (msg.type === "createNewGroups") {
+      const dataToSend = await createGroups(msg.data, chrome);
+      const dataJson = JSON.stringify(dataToSend);
+      const packetToSend = {
+        tag: "Answer",
+        type: "done",
+        data: dataJson,
+      };
+      socket.send(JSON.stringify(packetToSend));
+    }else if(msg.type==="closeAllGroups"){
+      const newgroubs = await closeAllGroups(chrome,msg.data);
+      const dataToSend = JSON.stringify(newgroubs);
+      const packetToSend = {
+        tag: "Answer",
+        type: "closed",
+        data: dataToSend,
+      };
+      console.log(dataToSend)
+      socket.send(JSON.stringify(packetToSend));
     }
   }
 };
@@ -80,3 +102,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 chrome.runtime.onStartup.addListener(() => {
   console.log("Browser started");
 });
+
+async function test(windowId) {
+  await chrome.windows.update(windowId, { focused: true });
+  return await chrome.windows.getAll({ windowTypes: ["normal"] });
+}

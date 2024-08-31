@@ -21,7 +21,8 @@ public class WindowController {
     }
 
     public Shelf addGroupsToShelf(Shelf toCreate, List<Tab> tabsToInclude) {
-        return extChrome.createNewGroups(toCreate, tabsToInclude);
+        // return extChrome.createNewGroups(toCreate, tabsToInclude);
+        return null;
     }
     
 }

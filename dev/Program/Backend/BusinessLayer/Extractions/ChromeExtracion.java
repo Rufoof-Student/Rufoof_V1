@@ -9,7 +9,10 @@ import dev.Program.Backend.BusinessLayer.Server.ChromeWindowToSendSocket;
 import dev.Program.Backend.BusinessLayer.Server.ExtensionSocketServer;
 import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
 import dev.Program.DTOs.ChromeWindow;
+import dev.Program.DTOs.Colors;
+import dev.Program.DTOs.Group;
 import dev.Program.DTOs.Tab;
+import java.util.Scanner;
 
 public class ChromeExtracion {
 
@@ -19,10 +22,10 @@ public class ChromeExtracion {
 
     public ChromeExtracion(ExtensionSocketServer server) {
         this.server = server;
-        runningWindows = server.getCurrentGoogleOpenedWindows();
-        for (ChromeWindow chromeWindow : runningWindows) {
-            idCounter = idCounter<chromeWindow.getChromeId()?chromeWindow.getChromeId():idCounter;
-        }
+        // runningWindows = server.getCurrentFreeTabs();
+        // for (ChromeWindow chromeWindow : runningWindows) {
+        //     idCounter = idCounter<chromeWindow.getChromeId()?chromeWindow.getChromeId():idCounter;
+        // }
     }
 
     /**
@@ -33,9 +36,16 @@ public class ChromeExtracion {
      * @param tabs  the tabs to move to the groups.
      * @return the shelf with updated group information.
      */
-    public Shelf createNewGroups(Shelf shelf, List<Tab> tabs) {
-        // TODO
-        
+    public Shelf createNewGroups(Shelf shelf, List<Group> groups) {
+        for (Group group : groups) {
+            group.setShelfProperties(shelf);
+            if(group.getGeneratedId()==-1) {
+                group.setGeneratedId(idCounter);
+                idCounter++;
+            }
+        }
+        groups = server.createGroups(groups);
+        shelf.setGroups(groups);
         return shelf;
     }
 
@@ -46,9 +56,8 @@ public class ChromeExtracion {
      * @return the shelf with updated data, such as group IDs.
      */
     public Shelf runShelf(Shelf shelf) {
-        // TODO foreach group:
-        // check chrome id , if not open to open one with this id.
-        // adding the group to the chrome.
+        List<Group> groupsToOpen = shelf.getGroups();
+        groupsToOpen = server.runAllGroups(groupsToOpen);
         return shelf;
     }
 
@@ -57,12 +66,24 @@ public class ChromeExtracion {
      * If a tab is not open, it will remain in the shelf.
      * 
      * @param shelf the shelf containing the groups and tabs.
-     * @param tabs  the tabs to be added and/or closed.
+     * @param groups  the tabs to be added and/or closed.
      * @return the shelf with updated group and tab data.
      */
-    public Shelf closeShelf(Shelf shelf, List<Tab> tabs) {
-        // TODO
+    public Shelf closeShelf(Shelf shelf, List<Group> groups) {
+        List<Group> newGroups = dealWithNewGroups(groups, shelf);
+        newGroups = server.closeAllGroups(newGroups);
+        for (Group group : newGroups) {
+            group.markAsClosed();
+        }
+        shelf.setGroups(newGroups);
         return shelf;
+    }
+
+    private List<Group> dealWithNewGroups(List<Group> newGroups,Shelf shelf){
+        newGroups=shelf.cutGroups(newGroups);
+        newGroups = server.createGroups(newGroups);
+        shelf.addGroups(newGroups);
+        return shelf.getGroups();
     }
 
     /**
@@ -70,13 +91,77 @@ public class ChromeExtracion {
      * 
      * @return a list of ungrouped (free) tabs.
      */
-    public List<Tab> getFreeTabs() {
-        // TODO
-        return server.getFreeTabs();
+    public List<Group> getFreeTabs() {
+        return server.getCurrentFreeTabs();
     }
 
     private void insureConnection() {
         // TODO if there is no connection To connect
+    }
+
+    public static void main(String[] args){
+        ExtensionSocketServer s = new ExtensionSocketServer(8887);
+        s.start();
+        Scanner sc = new Scanner(System.in);
+        
+        Shelf shelf = new Shelf("test", 0, Colors.BLUE);
+        ChromeExtracion c =new ChromeExtracion(s);
+        while (true) {
+            System.out.println("Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New Groups\n3. Close Shelf\n4. Exit");
+            String input = sc.nextLine();
+
+            try {
+                int choice = Integer.parseInt(input);
+
+                switch (choice) {
+                    case 1:
+                        // Get Free Tabs
+                        System.out.println("Getting free tabs...");
+                        List<Group> freeTabs = c.getFreeTabs();
+                        System.out.println("Free tabs retrieved: " + freeTabs.size());
+                        break;
+
+                    case 2:
+                        // Create New Groups
+                        System.out.println("Creating new groups...");
+                        List<Group> free = c.getFreeTabs(); // Assuming free tabs are used here
+                        c.createNewGroups(shelf, free);
+                        System.out.println("New groups created.");
+                        break;
+
+                    case 3:
+                        // Close Shelf
+                        System.out.println("Closing shelf...");
+                        c.closeShelf(shelf, new ArrayList<>());
+                        System.out.println("Shelf closed.");
+                        for (Group group : shelf.getGroups()) {
+                            System.out.println("group collected:");
+                            for (Tab tab : group.getTabs()) {
+                                System.out.println(tab);
+                            }
+                        }
+                        break;
+
+                    case 4:
+                        // Exit loop
+                        System.out.println("Exiting...");
+                        return;
+
+                    default:
+                        System.out.println("Invalid choice. Please enter a valid number.");
+                        break;
+                }
+
+                // Add sleep after each operation to simulate delay
+                Thread.sleep(3000);
+
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
 }

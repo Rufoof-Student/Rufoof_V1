@@ -16,8 +16,10 @@ public class Group {
     private int chromeId;
 
     private int shelfId;
-    private Colors color;
+    private String color;
     private String name;
+
+    private String groupId;
 
     private Group(String nativeWindowId2, int chromeGeneratedId, List<Tab> tabs2){
         nativeWindowId=nativeWindowId2 ;
@@ -46,4 +48,44 @@ public class Group {
         name = shelf.getName();
         color = shelf.getColor();
     }
+
+    public int getGeneratedId() {
+       return chromeId;
+    }
+
+    public void setGeneratedId(int newId) {
+        chromeId=newId;
+    }
+
+    public String getNativeWindowId() {
+        return this.nativeWindowId;
+    }
+
+    public void setGroupId(String asString) {
+        groupId= asString;
+    }
+
+    public void markAsClosed() {
+        groupId= null;
+        nativeWindowId=null;
+        for (Tab tab : tabs) {
+            tab.markAsClosed();
+        }
+    }
+
+    //TODO clean it
+    public void addTabs(List<Tab> tabsFromJsonArray) {
+        for (Tab tab : tabsFromJsonArray) {
+            if(!tabs.contains(tab)){
+                tabs.add(tab);
+            }
+        }
+    }
+
+    public List<Tab> getTabs() {
+        return tabs;
+    }
+
+    
+
 }
