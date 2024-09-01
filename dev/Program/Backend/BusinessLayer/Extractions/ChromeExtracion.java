@@ -100,6 +100,7 @@ public class ChromeExtracion {
     }
 
     public static void main(String[] args){
+        System.out.println("hi adn ");
         ExtensionSocketServer s = new ExtensionSocketServer(8887);
         s.start();
         Scanner sc = new Scanner(System.in);
@@ -107,7 +108,7 @@ public class ChromeExtracion {
         Shelf shelf = new Shelf("test", 0, Colors.BLUE);
         ChromeExtracion c =new ChromeExtracion(s);
         while (true) {
-            System.out.println("Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New Groups\n3. Close Shelf\n4. Exit");
+            System.out.println("Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New Groups\n3. Close Shelf\n4. open shelf \n5.Exit");
             String input = sc.nextLine();
 
             try {
@@ -143,6 +144,9 @@ public class ChromeExtracion {
                         break;
 
                     case 4:
+                        c.runShelf(shelf);
+                        break;
+                    case 5:
                         // Exit loop
                         System.out.println("Exiting...");
                         return;

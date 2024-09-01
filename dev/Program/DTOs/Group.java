@@ -34,8 +34,8 @@ public class Group {
         List<Group> groupToReturn= new ArrayList<>();
         for (JsonElement windowJson : arrayOfWindows) {
             JsonObject window = windowJson.getAsJsonObject();
-            String nativeWindowId=window.get("windowId").getAsString();
-            int chromeGeneratedId  = window.get("generatedId").getAsInt();
+            String nativeWindowId=window.get("nativeWindowId").getAsString();
+            int chromeGeneratedId  = window.get("chromeId").getAsInt();
             JsonArray tabsAsJsonArray = window.get("tabs").getAsJsonArray();
             List<Tab> tabs= Tab.createTabsFromJsonArray(tabsAsJsonArray,nativeWindowId);
             groupToReturn.add(new Group(nativeWindowId,chromeGeneratedId,tabs));

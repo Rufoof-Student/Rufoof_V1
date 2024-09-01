@@ -1,11 +1,6 @@
-import { createGroups } from "./controller.js";
-// import { openAllGroups } from "./openShelfController.js";
+import { createGroups, getAllTabsAndWindows } from "./controller.js";
+ import { openAllGroups } from "./openShelfController.js";
 import { closeAllGroups } from "./CloseController.js";
-import { sss } from "./IdGenerator.js";
-
-function s(){
-  return sss();
-}
 
 let socket = new WebSocket("ws://localhost:8887"); // Use your server's IP if testing from another PC
 
@@ -19,41 +14,36 @@ socket.onmessage = async function (event) {
   console.log("Message from server: " + event.data);
   const msg = JSON.parse(event.data);
   if (msg.tag === "Question") {
-     if (msg.type === "runGroups") {
-      // const windowToSendBack = JSON.stringify(
-      //   await openAllGroups(chrome, msg.data).then(res=>res)
-      // );
-      // console.log(windowToSendBack);
-      // const packetToSend = {
-      //   tag: "Answer",
-      //   type: "running",
-      //   data: windowToSendBack,
-      // };
-      // socket.send(JSON.stringify(packetToSend));
+    if (msg.type === "getWindows") {
+      let toSend = "";
+      sendDataBackToSocket(await getAllTabsAndWindows(chrome), "Windows");
     } else if (msg.type === "close") {
       //TODO
     } else if (msg.type === "createNewGroups") {
-      const dataToSend = await createGroups(msg.data, chrome);
-      const dataJson = JSON.stringify(dataToSend);
-      const packetToSend = {
-        tag: "Answer",
-        type: "done",
-        data: dataJson,
-      };
-      socket.send(JSON.stringify(packetToSend));
-    }else if(msg.type==="closeAllGroups"){
-      const newgroubs = await closeAllGroups(chrome,msg.data);
-      const dataToSend = JSON.stringify(newgroubs);
-      const packetToSend = {
-        tag: "Answer",
-        type: "closed",
-        data: dataToSend,
-      };
-      console.log(dataToSend)
-      socket.send(JSON.stringify(packetToSend));
+      createGroups(msg.data, chrome).then((res) =>
+        sendDataBackToSocket(res, "done")
+      );
+    } else if (msg.type === "closeAllGroups") {
+      closeAllGroups(chrome, msg.data).then((res) =>
+        sendDataBackToSocket(res, "closed")
+      );
+    } else if(msg.type==="runGroubs"){
+      openAllGroups(chrome,JSON.parse(msg.data)).then(res=>sendDataBackToSocket(res,"running"));
     }
   }
 };
+
+function sendDataBackToSocket(data, type) {
+  console.log(data);
+  const dataToSend = JSON.stringify(data);
+  const packetToSend = {
+    tag: "Answer",
+    type: type,
+    data: dataToSend,
+  };
+  console.log(dataToSend);
+  socket.send(JSON.stringify(packetToSend));
+}
 
 socket.onclose = function (event) {
   console.log("WebSocket closed: " + event.code);
@@ -91,4 +81,3 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 chrome.runtime.onStartup.addListener(() => {
   console.log("Browser started");
 });
-
