@@ -1,11 +1,13 @@
-import { setGeneratedWindowId,getGeneratedIdForWindow } from "./ChromeIdController";
+import { getGeneratedIdForWindow,setGeneratedWindowId } from "./IdGenerator.js";
 
 export async function getAllTabsAndWindows(chrome) {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     chrome.windows.getAll({ populate: true }, (windows) => {
-      const tabsInfo = windows.map((window) => ({
+      const tabsInfo = windows.map(async (window) => ({
         windowId: window.id,
-        generatedId: getGeneratedIdForWindow(window.id, chrome),
+        generatedId: await getGeneratedIdForWindow(window.id, chrome).then(
+          (res) => res
+        ),
         tabs: getAllFreeTabsDataInWindow(window),
       }));
       console.log(tabsInfo);
@@ -13,7 +15,6 @@ export async function getAllTabsAndWindows(chrome) {
     });
   });
 }
-
 
 function getAllFreeTabsDataInWindow(window) {
   return window.tabs
@@ -28,18 +29,26 @@ function getAllFreeTabsDataInWindow(window) {
 
 export async function createGroups(data, chrome) {
   const groups = JSON.parse(data);
-  
+
   let returendGroups = [];
-  
+
   // Loop through each group sequentially
   for (const group of groups) {
-    if (getGeneratedIdForWindow(group.nativeWindowId, chrome) === -1) {
-      setGeneratedWindowId(group.nativeWindowId, chrome, group.chromeId);
+    if (
+      (await getGeneratedIdForWindow(group.nativeWindowId, chrome).then(
+        (res) => res
+      )) === -1
+    ) {
+      await setGeneratedWindowId(
+        group.nativeWindowId,
+        chrome,
+        group.chromeId
+      ).then((chromeId) => (group.chromeId = chromeId));
     }
 
     // Only attempt to create a group if there are tabs to add
     if (group.tabs.length > 0) {
-      const toAdd = await openNewGroup(group, chrome);
+      const toAdd = await openNewGroup(group, chrome).then((res) => res);
       returendGroups.push(toAdd);
       console.log("Added group to returendGroups");
     }
@@ -49,7 +58,6 @@ export async function createGroups(data, chrome) {
   console.log("Number of returned groups:", returendGroups.length);
   return returendGroups;
 }
-
 
 export async function openNewGroup(group, chrome) {
   console.log(group);
@@ -61,6 +69,7 @@ export async function openNewGroup(group, chrome) {
       focused: true,
     });
     console.log("window is focused");
+    resolve();
   });
 
   const groupId = await new Promise((resolve) => {

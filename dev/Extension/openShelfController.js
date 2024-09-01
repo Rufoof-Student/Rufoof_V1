@@ -1,11 +1,15 @@
-import { setGeneratedWindowId,getGeneratedIdForWindow,getWindowId2ChromeId } from "./ChromeIdController";
-import { getWindow } from "./WindowController";
+ import { getWindowIdForGeneratedId } from "./IdGenerator";
+import { getWindow,openTabsOnWindow } from "./WindowController";
+
 
 export async function openAllGroups(chrome, groups) {
   for(const group of groups){
-    const windowId = getWindowIdFor(group.chromeId);
+    const windowId = getWindowIdForGeneratedId(group.chromeId).then(res=>res).catch(error=>error);
     getWindow(chrome,windowId).then(window=>{
-      
+      openTabsOnWindow(chrome,windowId,group.tabs).then(tabs=>{
+        group.tabs = tabs;
+
+      })
     }).catch(error=>{
 
     })
@@ -36,21 +40,6 @@ const createNewWindow = async (window) => {
   return tabIdToDelete;
 };
 
-function setWindowGeneratedId(data, chrome, nativeWindowId) {
-    chrome.storage.local.set({ [nativeWindowId]: data }, () => console.log('Data ' + data + ' added'));
-}
-
-function getWindowGeneratedId(nativeWindowId, chrome) {
-    chrome.storage.local.get([nativeWindowId], function(result) {
-        if (result && result[nativeWindowId]) {
-            console.log('Data retrieved: ', result[nativeWindowId]);
-            return (result[nativeWindowId]);  // Pass the data to a callback function
-        } else {
-            console.log('No data found for window ID: ', nativeWindowId);
-            return (null);  // Pass null if no data is found
-        }
-    });
-}
 
 
 //==================================================================

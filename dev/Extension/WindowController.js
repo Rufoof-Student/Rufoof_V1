@@ -11,3 +11,7 @@ export async function getWindow(chrome,windowId){
         });
     });
 }
+
+export async function openTabsOnWindow(chrome,windowId,tabs){
+    return new Promise(resolve=>resolve(1));
+  }

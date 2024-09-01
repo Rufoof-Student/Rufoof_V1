@@ -1,7 +1,11 @@
-import { createGroups, getAllTabsAndWindows } from "./controller.js";
-import { openAllGroups } from "./openShelfController.js";
+import { createGroups } from "./controller.js";
+// import { openAllGroups } from "./openShelfController.js";
 import { closeAllGroups } from "./CloseController.js";
+import { sss } from "./IdGenerator.js";
 
+function s(){
+  return sss();
+}
 
 let socket = new WebSocket("ws://localhost:8887"); // Use your server's IP if testing from another PC
 
@@ -15,32 +19,17 @@ socket.onmessage = async function (event) {
   console.log("Message from server: " + event.data);
   const msg = JSON.parse(event.data);
   if (msg.tag === "Question") {
-    if (msg.type === "getWindows") {
-      let toSend = "";
-      (async () => {
-        const windowsToSend = await getAllTabsAndWindows(chrome);
-        const dataJson = JSON.stringify(windowsToSend);
-        const toSend = {
-          tag: "Answer",
-          type: "Windows",
-          data: dataJson,
-        };
-        console.log(toSend);
-        const packetToSend = JSON.stringify(toSend);
-        console.log(packetToSend);
-        socket.send(packetToSend);
-      })();
-    } else if (msg.type === "runGroups") {
-      const windowToSendBack = JSON.stringify(
-        await openAllGroups(chrome, msg.data)
-      );
-      console.log(windowToSendBack);
-      const packetToSend = {
-        tag: "Answer",
-        type: "running",
-        data: windowToSendBack,
-      };
-      socket.send(JSON.stringify(packetToSend));
+     if (msg.type === "runGroups") {
+      // const windowToSendBack = JSON.stringify(
+      //   await openAllGroups(chrome, msg.data).then(res=>res)
+      // );
+      // console.log(windowToSendBack);
+      // const packetToSend = {
+      //   tag: "Answer",
+      //   type: "running",
+      //   data: windowToSendBack,
+      // };
+      // socket.send(JSON.stringify(packetToSend));
     } else if (msg.type === "close") {
       //TODO
     } else if (msg.type === "createNewGroups") {
@@ -103,7 +92,3 @@ chrome.runtime.onStartup.addListener(() => {
   console.log("Browser started");
 });
 
-async function test(windowId) {
-  await chrome.windows.update(windowId, { focused: true });
-  return await chrome.windows.getAll({ windowTypes: ["normal"] });
-}
