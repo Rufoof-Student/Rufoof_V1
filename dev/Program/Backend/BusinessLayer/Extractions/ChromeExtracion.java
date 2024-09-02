@@ -100,7 +100,7 @@ public class ChromeExtracion {
     }
 
     public static void main(String[] args){
-        System.out.println("hi adn ");
+        
         ExtensionSocketServer s = new ExtensionSocketServer(8887);
         s.start();
         Scanner sc = new Scanner(System.in);
