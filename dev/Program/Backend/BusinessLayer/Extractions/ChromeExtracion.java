@@ -12,7 +12,11 @@ import dev.Program.DTOs.ChromeWindow;
 import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.Group;
 import dev.Program.DTOs.Tab;
+import net.bytebuddy.implementation.bytecode.constant.IntegerConstant;
+
 import java.util.Scanner;
+
+import org.openqa.selenium.support.Color;
 
 public class ChromeExtracion {
 
@@ -57,7 +61,10 @@ public class ChromeExtracion {
      */
     public Shelf runShelf(Shelf shelf) {
         List<Group> groupsToOpen = shelf.getGroups();
-        groupsToOpen = server.runAllGroups(groupsToOpen);
+        groupsToOpen = server.runAllGroups(groupsToOpen,shelf);
+        //TODO - update shelf data 
+        shelf.setGroups(groupsToOpen);
+
         return shelf;
     }
 
@@ -73,6 +80,7 @@ public class ChromeExtracion {
         List<Group> newGroups = dealWithNewGroups(groups, shelf);
         newGroups = server.closeAllGroups(newGroups);
         for (Group group : newGroups) {
+            group.setShelfProperties(shelf);
             group.markAsClosed();
         }
         shelf.setGroups(newGroups);
@@ -104,11 +112,13 @@ public class ChromeExtracion {
         ExtensionSocketServer s = new ExtensionSocketServer(8887);
         s.start();
         Scanner sc = new Scanner(System.in);
-        
-        Shelf shelf = new Shelf("test", 0, Colors.BLUE);
+        List<Shelf> shelfs = new ArrayList<>();
+        int idCounter=0;
+        Colors[] colors = new Colors[]{Colors.BLUE,Colors.CYAN,Colors.ORANGE,Colors.RED};
+        Shelf shelf =null;
         ChromeExtracion c =new ChromeExtracion(s);
         while (true) {
-            System.out.println("Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New Groups\n3. Close Shelf\n4. open shelf \n5.Exit");
+            System.out.println("Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New Groups\n3. Close Shelf\n4. open shelf\n5.create new Shelf\n6.move to shelf \n7.Exit");
             String input = sc.nextLine();
 
             try {
@@ -147,6 +157,20 @@ public class ChromeExtracion {
                         c.runShelf(shelf);
                         break;
                     case 5:
+                        System.out.println("set the name and the color of the shelf:");
+                        String name = sc.nextLine();
+                        String colorNumber = sc.nextLine();
+                        int colorIndex = Integer.parseInt(colorNumber);
+                        Shelf sh = new Shelf(name, idCounter,colors[colorIndex]);
+                        idCounter++;
+                        shelfs.add(sh);
+                        break;
+                    case 6:
+                        System.out.println("enter shelf number:");
+                        int index =Integer.parseInt( sc.nextLine());
+                        shelf = shelfs.get(index);
+                        break;
+                    case 7:
                         // Exit loop
                         System.out.println("Exiting...");
                         return;
@@ -157,7 +181,7 @@ public class ChromeExtracion {
                 }
 
                 // Add sleep after each operation to simulate delay
-                Thread.sleep(3000);
+                Thread.sleep(1000);
 
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Please enter a valid number.");

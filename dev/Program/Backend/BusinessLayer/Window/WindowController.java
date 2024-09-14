@@ -20,9 +20,21 @@ public class WindowController {
         extChrome =new ChromeExtracion(socket);
     }
 
-    public Shelf addGroupsToShelf(Shelf toCreate, List<Tab> tabsToInclude) {
-        // return extChrome.createNewGroups(toCreate, tabsToInclude);
-        return null;
+    public Shelf addGroupsToShelf(Shelf toCreate, List<Group> tabsToInclude) {
+        return extChrome.createNewGroups(toCreate, tabsToInclude);
     }
     
+    public List<Group> getFreeTabs(){
+        return extChrome.getFreeTabs();
+    }
+
+    public Shelf openShelf(Shelf s) {
+       return extChrome.runShelf(s);
+    }
+
+    public Shelf closeShelf(Shelf s , List<Group> groupToAdd){
+        return extChrome.closeShelf(s, groupToAdd);
+    }
+
+
 }

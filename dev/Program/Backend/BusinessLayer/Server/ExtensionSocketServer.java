@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.internal.LinkedHashTreeMap;
 
+import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
 import dev.Program.DTOs.*;
 
 import org.java_websocket.WebSocket;
@@ -129,6 +130,7 @@ public class ExtensionSocketServer extends WebSocketServer {
      */
     public List<Group> getCurrentFreeTabs() {
         if (conns.size() == 0) {
+            System.out.println("there is no connections in the server");
             return null;
         }
         WebSocket conn = conns.get(0);
@@ -141,8 +143,12 @@ public class ExtensionSocketServer extends WebSocketServer {
                 while (responses.size() == 0)
                     lock.wait();
                 Answer res = responses.remove();
-                if (!res.type.equals("Windows"))
+                System.out.println(res.type);
+
+                if (!res.type.equals("Windows")){
+                    System.out.println("Windows not recived!");
                     return null;
+                }
                 return Group.createGroupFromFreeTabsAnswerJSON(res.data);
             }
             
@@ -357,11 +363,11 @@ public class ExtensionSocketServer extends WebSocketServer {
         return answer;
     }
 
-    public List<Group> runAllGroups(List<Group> groupsToOpen) {
+    public List<Group> runAllGroups(List<Group> groupsToOpen,Shelf shelf) {
         Group[] groupsToSend = getGroupAsArray(groupsToOpen);
         synchronized(lock){
             Answer answer = sendAndReciveQeustion("runGroubs", gson.toJson(groupsToSend) , "running");
-            return Group.createGroupFromFreeTabsAnswerJSON(answer.data);
+            return Group.getAllGroupsAsOpened(answer.data,shelf);
         }
     }
 

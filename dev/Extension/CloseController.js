@@ -2,6 +2,7 @@ export async function closeAllGroups(chrome, groupsJSON) {
   let groups = JSON.parse(groupsJSON);
   let newGroups = [];
   for (let group of groups) {
+    console.log(group);
     group.groupId = parseInt(group.groupId);
     await getTabsForThisGroup(group.groupId).then(
       (tabs) => (group.tabs = tabs)
@@ -30,7 +31,9 @@ async function closeGroup(groupId) {
 async function getTabsForThisGroup(groupId) {
   return await new Promise((resolve, reject) => {
     // Use the chrome.tabs.query API to get tabs belonging to the specified groupId
-    chrome.tabs.query({ groupId: groupId }, function (tabs) {
+    console.log(parseInt(groupId));
+    console.log(groupId);
+    chrome.tabs.query({ groupId:parseInt(groupId) }, function (tabs) {
         if (chrome.runtime.lastError) {
             reject(chrome.runtime.lastError);
         } else {

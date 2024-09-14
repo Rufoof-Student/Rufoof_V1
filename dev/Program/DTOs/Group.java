@@ -21,40 +21,77 @@ public class Group {
 
     private String groupId;
 
-    private Group(String nativeWindowId2, int chromeGeneratedId, List<Tab> tabs2){
-        nativeWindowId=nativeWindowId2 ;
-        chromeId= chromeGeneratedId;
-        tabs= tabs2;
+    private Group(String nativeWindowId2, int chromeGeneratedId, List<Tab> tabs2) {
+        nativeWindowId = nativeWindowId2;
+        chromeId = chromeGeneratedId;
+        tabs = tabs2;
     }
 
-    public static List<Group> createGroupFromFreeTabsAnswerJSON(String data){
+    private static JsonArray parseArrayData(String data) {
         JsonParser parser = new JsonParser();
-        JsonElement parsedData=parser.parse(data) ;
-        JsonArray arrayOfWindows=parsedData.getAsJsonArray();
-        List<Group> groupToReturn= new ArrayList<>();
+        JsonElement parsedData = parser.parse(data);
+        return parsedData.getAsJsonArray();
+    }
+
+    public static List<Group> createGroupFromFreeTabsAnswerJSON(String data) {
+        JsonArray arrayOfWindows = Group.parseArrayData(data);
+        List<Group> groupToReturn = new ArrayList<>();
         for (JsonElement windowJson : arrayOfWindows) {
             JsonObject window = windowJson.getAsJsonObject();
-            String nativeWindowId=window.get("nativeWindowId").getAsString();
-            int chromeGeneratedId  = window.get("chromeId").getAsInt();
+            String nativeWindowId = window.get("nativeWindowId").getAsString();
+            int chromeGeneratedId = window.get("chromeId").getAsInt();
             JsonArray tabsAsJsonArray = window.get("tabs").getAsJsonArray();
-            List<Tab> tabs= Tab.createTabsFromJsonArray(tabsAsJsonArray,nativeWindowId);
-            groupToReturn.add(new Group(nativeWindowId,chromeGeneratedId,tabs));
+            List<Tab> tabs = Tab.createTabsFromJsonArray(tabsAsJsonArray, nativeWindowId);
+            groupToReturn.add(new Group(nativeWindowId, chromeGeneratedId, tabs));
         }
         return groupToReturn;
     }
 
-    public void setShelfProperties(Shelf shelf){
+    /**
+     * this function will update the native ids for groups (include tabs)
+     * INSURE :
+     * 
+     * @param data JSON format is include this - { tabs : [ nativeTabId : string |
+     *             int , ...] , nativeWindowId : String | int , groupId : String |
+     *             int ,... }
+     */
+    public static List<Group> getAllGroupsAsOpened(String data,Shelf shelfForGroups) {
+        JsonArray arrayOfWindows = Group.parseArrayData(data);
+        List<Group> groupToReturn = new ArrayList<>();
+        for (JsonElement windowJson : arrayOfWindows) {
+            JsonObject window = windowJson.getAsJsonObject();
+            String nativeWindowId = window.get("nativeWindowId").getAsString();
+            int chromeGeneratedId = window.get("chromeId").getAsInt();
+            JsonArray tabsAsJsonArray = window.get("tabs").getAsJsonArray();
+            List<Tab> tabs = Tab.createTabsFromJsonArray(tabsAsJsonArray, nativeWindowId);
+            Group g = (new Group(nativeWindowId, chromeGeneratedId, tabs));
+            g.setShelfProperties(shelfForGroups);
+            g.setGroupId(window.get("groupId").getAsString());
+            groupToReturn.add(g);
+        }
+        return groupToReturn;
+    }
+
+    public void markAsClosed() {
+        groupId = null;
+        nativeWindowId = null;
+        for (Tab tab : tabs) {
+            tab.markAsClosed();
+        }
+    }
+
+    public void setShelfProperties(Shelf shelf) {
         shelfId = shelf.getId();
         name = shelf.getName();
         color = shelf.getColor();
     }
 
     public int getGeneratedId() {
-       return chromeId;
+        return chromeId;
     }
 
     public void setGeneratedId(int newId) {
-        chromeId=newId;
+        chromeId = newId;
     }
 
     public String getNativeWindowId() {
@@ -62,21 +99,13 @@ public class Group {
     }
 
     public void setGroupId(String asString) {
-        groupId= asString;
+        groupId = asString;
     }
 
-    public void markAsClosed() {
-        groupId= null;
-        nativeWindowId=null;
-        for (Tab tab : tabs) {
-            tab.markAsClosed();
-        }
-    }
-
-    //TODO clean it
+    // TODO clean it
     public void addTabs(List<Tab> tabsFromJsonArray) {
         for (Tab tab : tabsFromJsonArray) {
-            if(!tabs.contains(tab)){
+            if (!tabs.contains(tab)) {
                 tabs.add(tab);
             }
         }
@@ -86,6 +115,11 @@ public class Group {
         return tabs;
     }
 
-    
+    public void removeTab(String idToDel) {
+        for (int i = 0; i < tabs.size(); i++) {
+            if (tabs.get(i).getNativeTabId().equals(idToDel))
+                tabs.remove(i);
+        }
+    }
 
 }

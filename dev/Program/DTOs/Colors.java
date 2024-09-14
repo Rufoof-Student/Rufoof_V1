@@ -9,8 +9,7 @@ public enum Colors {
     PINK("pink", 255, 192, 203),
     PURPLE("purple", 128, 0, 128),
     CYAN("cyan", 0, 255, 255),
-    ORANGE("orange", 255, 165, 0),
-    BROWN("brown", 165, 42, 42);
+    ORANGE("orange", 255, 165, 0);
 
     private final String colorName;
     private final int r;
@@ -61,6 +60,6 @@ public enum Colors {
 
     @Override
     public String toString() {
-        return colorName + " (" + r + ", " + g + ", " + b + ")";
+        return colorName ;
     }
 }

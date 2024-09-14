@@ -1,7 +1,7 @@
 package dev.Program.Backend.BusinessLayer.Shelf;
 
 import java.util.List;
-
+import java.util.ArrayList;
 import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.Group;
 import dev.Program.DTOs.Window;
@@ -19,6 +19,11 @@ public class Shelf {
         this.id = id;
         this.name = name;
         this.color= color;
+        groups = new ArrayList<>();
+    }
+
+    public String toString(){
+        return name+" with id "+id+" and color "+color.getColorName();
     }
     
     public int getId() {
@@ -36,9 +41,13 @@ public class Shelf {
     }
 
     public List<Group> cutGroups(List<Group> groups2) {
-        for (Group group2 : groups2) {
-            for (Group group : groups) {
-                if(group.getNativeWindowId().equals(group2.getNativeWindowId())) groups2.remove(group2);
+        for (int i = groups2.size() - 1; i >= 0; i--) {
+            Group group2 = groups2.get(i);
+            for (int j = 0; j < groups.size(); j++) {
+                Group group = groups.get(j);
+                if (group.getNativeWindowId().equals(group2.getNativeWindowId())) {
+                    groups2.remove(i);
+                }
             }
         }
         return groups2;
