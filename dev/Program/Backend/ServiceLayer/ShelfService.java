@@ -30,7 +30,7 @@ public class ShelfService {
      * @param windowToInclude Array of window IDs to include in the new shelf.
      * @return JSON response: if an error occurred, returns the error; otherwise, returns `true`.
      */
-    public String createNewShelf(String name, int[] windowToInclude) {
+    public String createNewShelf(String name, List<Group> windowToInclude) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
