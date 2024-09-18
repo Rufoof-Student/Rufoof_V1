@@ -59,10 +59,10 @@ public class MainController {
                         String[][] IdsForGroupTabs = getTabsIds(groups);
                         removeFromGroup(groups, IdsForGroupTabs, sc);
                         System.out.println("choose a name for the group");
-                        String name=sc.nextLine();
+                        String name = sc.nextLine();
                         System.out.println("choose a color from Colors.BLUE,Colors.CYAN,Colors.ORANGE,Colors.RED}");
                         int number = Integer.parseInt(sc.nextLine());
-                        Colors[] colors = new Colors[]{Colors.BLUE,Colors.CYAN,Colors.ORANGE,Colors.RED};
+                        Colors[] colors = new Colors[] { Colors.BLUE, Colors.CYAN, Colors.ORANGE, Colors.RED };
                         m.createNewShelf(name, colors[number], null, groups);
                         break;
                     case "2":
@@ -82,17 +82,17 @@ public class MainController {
                         break;
                     case "4":
                         System.out.println("choose shelf");
-                        try{
-                            Shelf s =m.getAllShelfs().get(Integer.parseInt(sc.nextLine()));
+                        try {
+                            Shelf s = m.getAllShelfs().get(Integer.parseInt(sc.nextLine()));
 
                             System.out.println("are you want to add any of this tabs?");
                             groups = m.getFreeOpenedTabsAsGroups();
                             IdsForGroupTabs = getTabsIds(groups);
                             removeFromGroup(groups, IdsForGroupTabs, sc);
 
-                            m.closeShelf(s,groups);
-                            
-                        }catch(NumberFormatException ex){
+                            m.closeShelf(s, groups);
+
+                        } catch (NumberFormatException ex) {
                             System.out.println("enter a valid num");
                         }
 
@@ -106,7 +106,7 @@ public class MainController {
         }
     }
 
-    private Shelf closeShelf(Shelf s, List<Group> groups) {
+    public Shelf closeShelf(Shelf s, List<Group> groups) {
         return windowController.closeShelf(s, groups);
     }
 
@@ -127,9 +127,7 @@ public class MainController {
         return IdsForGroupTabs;
     }
 
-   
-
-    private static void removeFromGroup(List<Group> groups, String[][] IdsForGroupTabs,Scanner sc) {
+    private static void removeFromGroup(List<Group> groups, String[][] IdsForGroupTabs, Scanner sc) {
         boolean done = false;
         while (!done) {
             System.out.println("enter group num");
