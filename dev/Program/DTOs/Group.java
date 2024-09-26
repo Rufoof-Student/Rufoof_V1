@@ -122,4 +122,17 @@ public class Group {
         }
     }
 
+    public boolean hasDiffTabs(Group group) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'hasDiffTabs'");
+    }
+
+    public void union(Group group) {
+        this.addTabs(group.getTabs());
+    }
+
+    public void setTabs(List<Tab> tabsToKeep) {
+        tabs=tabsToKeep;
+    }
+
 }

@@ -1,6 +1,6 @@
 // import { getWindowIdForGeneratedId } from "./IdGenerator";
 // import { getWindow } from "./WindowController";
-
+import { sleep } from "./controller.js";
 import {
   getGeneratedIdForWindow,
   setGeneratedWindowId,
@@ -12,10 +12,15 @@ export async function openAllGroups(chrome, groups) {
     console.log(chrome);
     const windowId = await getWindowIdForGeneratedId(group.chromeId, chrome);
     let window = await getWindow(chrome, windowId).then((window) => window);
-
+    let defaultGoogleTabToClose = undefined;
     if (window === null)
-      window = await openWindowWithGeneratedId(chrome, group.chromeId);
-    await getWindow(chrome, windowId);
+      await openWindowWithGeneratedId(chrome, group.chromeId).then(
+        (windowRes, defaultTabRes) => {
+          defaultGoogleTabToClose = windowRes.tabs[0].id;
+          window = windowRes;
+        }
+      );
+    console.log(defaultGoogleTabToClose);
     const groupId = await createTabGroupInWindow(chrome, window.id, group.tabs);
     group.groupId = groupId;
     group.nativeWindowId = window.id;
@@ -24,11 +29,16 @@ export async function openAllGroups(chrome, groups) {
       color: group.color,
     });
     console.log(group);
+    if (defaultGoogleTabToClose)
+      await chrome.tabs.remove(
+        defaultGoogleTabToClose,
+        () => (defaultGoogleTabToClose = undefined)
+      );
   }
   return groups;
 }
 async function openWindowWithGeneratedId(chrome, chromeId) {
-  const window = new Promise(async (resolve) => {
+  const window = await new Promise(async (resolve) => {
     await chrome.windows.create(
       {
         url: "https://www.google.com", // The URL to open in the new window
@@ -37,7 +47,8 @@ async function openWindowWithGeneratedId(chrome, chromeId) {
       },
       async (newWindow) => {
         await setGeneratedWindowId(newWindow.id + "", chrome, chromeId + "");
-        resolve(newWindow);
+        console.log(newWindow);
+        resolve(newWindow, newWindow.tabs[0].id);
       }
     );
   });
@@ -68,6 +79,7 @@ async function createTabGroupInWindow(chrome, windowId, tabs) {
     let newTab = await chrome.tabs.create({ windowId: windowId, url: tab.url });
     tab.nativeTabId = newTab.id;
     tabIds.push(newTab.id);
+    await sleep(750);
   }
 
   // Now create a tab group with these tabs
@@ -75,27 +87,4 @@ async function createTabGroupInWindow(chrome, windowId, tabs) {
 
   return groupId;
 }
-// const createNewWindow = async (window) => {
-//   let tabIdToDelete;
-//   const newWindow = await new Promise(async (resolve, reject) => {
-//     await chrome.windows.create(
-//       { url: "https://www.google.com", type: "normal" },
-//       (createdWindow) => {
-//         if (chrome.runtime.lastError) {
-//           reject(chrome.runtime.lastError);
-//         } else {
-//           console.log("getting the id...");
-//           tabIdToDelete = createdWindow.tabs[0].id;
-//           resolve(createdWindow);
-//         }
-//       }
-//     );
-//   });
 
-//   // Set the window ID once the new window is created
-//   window.id = newWindow.id;
-//   console.log(tabIdToDelete);
-//   return tabIdToDelete;
-// };
-
-//==================================================================

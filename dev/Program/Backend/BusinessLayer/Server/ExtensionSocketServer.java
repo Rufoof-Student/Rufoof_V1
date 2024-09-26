@@ -300,7 +300,7 @@ public class ExtensionSocketServer extends WebSocketServer {
 
 
 
-    public List<Group> createGroups(List<Group> groups) {
+    public GroupPack createGroups(List<Group> groups) {
         Group[] groupsAsArray = new Group[groups.size()];
         Map<String,Group> dicGroup = new ConcurrentHashMap<>();
         for(int i=0;i<groups.size();i++){
@@ -317,7 +317,7 @@ public class ExtensionSocketServer extends WebSocketServer {
                 g.setGroupId(jsonElement.getAsJsonObject().get("groupId").getAsString());
                 toRet.add(g);
             }
-            return toRet;
+            return new GroupPack(toRet);
         }
     }
 
@@ -350,6 +350,7 @@ public class ExtensionSocketServer extends WebSocketServer {
 
     private Answer sendAndReciveQeustion(String type,String data,String resType){
         if(conns.size()==0) return null;
+        System.out.println("data sent to client :"+data);
         WebSocket con =conns.get(0);
         Question question = new Question(type, data);
         con.send(gson.toJson(question));

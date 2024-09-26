@@ -1,16 +1,3 @@
-export async function getWindow(chrome, windowId) {
-    // return await new Promise(async (resolve, reject) => {
-    //     await chrome.windows.get(windowId, { populate: true }, (window) => {
-    //         if (chrome.runtime.lastError) {
-    //             reject(chrome.runtime.lastError);
-    //         } else {
-    //             resolve(window);
-    //         }
-    //     });
-    // });
-    console.log('d');
-}
-
 
 
 

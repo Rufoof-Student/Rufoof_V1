@@ -131,3 +131,8 @@ export async function openNewGroup(group, chrome) {
     resolve({ groupId: groupId, windowId: group.nativeWindowId });
   });
 }
+
+
+export function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

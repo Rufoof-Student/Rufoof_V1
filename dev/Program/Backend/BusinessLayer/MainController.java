@@ -43,68 +43,68 @@ public class MainController {
         return shelfcController.getAllShelfsAsList();
     }
 
-    public static void main(String[] args) {
-        MainController m = new MainController();
-        boolean toExit = false;
-        Scanner sc = new Scanner(System.in);
-        while (!toExit) {
-            System.out.println("1-create shelf \n2-get all shelfs\n3-open shelf\n4-close shelf");
-            try {
-                String input = sc.nextLine();
-                switch (input) {
-                    case "1":
-                        System.out.println(
-                                "will show the opened tabs 4 u , please choose the tabs that you want to include in the new shelf");
-                        List<Group> groups = m.getFreeOpenedTabsAsGroups();
-                        String[][] IdsForGroupTabs = getTabsIds(groups);
-                        removeFromGroup(groups, IdsForGroupTabs, sc);
-                        System.out.println("choose a name for the group");
-                        String name = sc.nextLine();
-                        System.out.println("choose a color from Colors.BLUE,Colors.CYAN,Colors.ORANGE,Colors.RED}");
-                        int number = Integer.parseInt(sc.nextLine());
-                        Colors[] colors = new Colors[] { Colors.BLUE, Colors.CYAN, Colors.ORANGE, Colors.RED };
-                        m.createNewShelf(name, colors[number], null, groups);
-                        break;
-                    case "2":
-                        System.out.println("choose shelf to close");
-                        List<Shelf> shelfs = m.getAllShelfs();
-                        for (int i = 0; i < shelfs.size(); i++) {
-                            System.out.println(i + " " + shelfs.get(i).toString());
-                        }
-                        break;
-                    case "3":
-                        System.out.println("enter the number of the shelf to open");
-                        try {
-                            m.openShelf(m.getAllShelfs().get(Integer.parseInt(sc.nextLine())));
-                        } catch (NumberFormatException ex) {
-                            System.out.println("enter a number");
-                        }
-                        break;
-                    case "4":
-                        System.out.println("choose shelf");
-                        try {
-                            Shelf s = m.getAllShelfs().get(Integer.parseInt(sc.nextLine()));
+    // public static void main(String[] args) {
+    //     MainController m = new MainController();
+    //     boolean toExit = false;
+    //     Scanner sc = new Scanner(System.in);
+    //     while (!toExit) {
+    //         System.out.println("1-create shelf \n2-get all shelfs\n3-open shelf\n4-close shelf");
+    //         try {
+    //             String input = sc.nextLine();
+    //             switch (input) {
+    //                 case "1":
+    //                     System.out.println(
+    //                             "will show the opened tabs 4 u , please choose the tabs that you want to include in the new shelf");
+    //                     List<Group> groups = m.getFreeOpenedTabsAsGroups();
+    //                     String[][] IdsForGroupTabs = getTabsIds(groups);
+    //                     removeFromGroup(groups, IdsForGroupTabs, sc);
+    //                     System.out.println("choose a name for the group");
+    //                     String name = sc.nextLine();
+    //                     System.out.println("choose a color from Colors.BLUE,Colors.CYAN,Colors.ORANGE,Colors.RED}");
+    //                     int number = Integer.parseInt(sc.nextLine());
+    //                     Colors[] colors = new Colors[] { Colors.BLUE, Colors.CYAN, Colors.ORANGE, Colors.RED };
+    //                     m.createNewShelf(name, colors[number], null, groups);
+    //                     break;
+    //                 case "2":
+    //                     System.out.println("choose shelf to close");
+    //                     List<Shelf> shelfs = m.getAllShelfs();
+    //                     for (int i = 0; i < shelfs.size(); i++) {
+    //                         System.out.println(i + " " + shelfs.get(i).toString());
+    //                     }
+    //                     break;
+    //                 case "3":
+    //                     System.out.println("enter the number of the shelf to open");
+    //                     try {
+    //                         m.openShelf(m.getAllShelfs().get(Integer.parseInt(sc.nextLine())));
+    //                     } catch (NumberFormatException ex) {
+    //                         System.out.println("enter a number");
+    //                     }
+    //                     break;
+    //                 case "4":
+    //                     System.out.println("choose shelf");
+    //                     try {
+    //                         Shelf s = m.getAllShelfs().get(Integer.parseInt(sc.nextLine()));
 
-                            System.out.println("are you want to add any of this tabs?");
-                            groups = m.getFreeOpenedTabsAsGroups();
-                            IdsForGroupTabs = getTabsIds(groups);
-                            removeFromGroup(groups, IdsForGroupTabs, sc);
+    //                         System.out.println("are you want to add any of this tabs?");
+    //                         groups = m.getFreeOpenedTabsAsGroups();
+    //                         IdsForGroupTabs = getTabsIds(groups);
+    //                         removeFromGroup(groups, IdsForGroupTabs, sc);
 
-                            m.closeShelf(s, groups);
+    //                         m.closeShelf(s, groups);
 
-                        } catch (NumberFormatException ex) {
-                            System.out.println("enter a valid num");
-                        }
+    //                     } catch (NumberFormatException ex) {
+    //                         System.out.println("enter a valid num");
+    //                     }
 
-                        break;
-                    default:
-                        break;
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
+    //                     break;
+    //                 default:
+    //                     break;
+    //             }
+    //         } catch (Exception ex) {
+    //             ex.printStackTrace();
+    //         }
+    //     }
+    // }
 
     public Shelf closeShelf(Shelf s, List<Group> groups) {
         return windowController.closeShelf(s, groups);

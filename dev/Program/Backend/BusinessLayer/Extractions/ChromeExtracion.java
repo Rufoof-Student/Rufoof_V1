@@ -11,6 +11,7 @@ import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
 import dev.Program.DTOs.ChromeWindow;
 import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.Group;
+import dev.Program.DTOs.GroupPack;
 import dev.Program.DTOs.Tab;
 import net.bytebuddy.implementation.bytecode.constant.IntegerConstant;
 
@@ -28,7 +29,8 @@ public class ChromeExtracion {
         this.server = server;
         // runningWindows = server.getCurrentFreeTabs();
         // for (ChromeWindow chromeWindow : runningWindows) {
-        //     idCounter = idCounter<chromeWindow.getChromeId()?chromeWindow.getChromeId():idCounter;
+        // idCounter =
+        // idCounter<chromeWindow.getChromeId()?chromeWindow.getChromeId():idCounter;
         // }
     }
 
@@ -43,13 +45,13 @@ public class ChromeExtracion {
     public Shelf createNewGroups(Shelf shelf, List<Group> groups) {
         for (Group group : groups) {
             group.setShelfProperties(shelf);
-            if(group.getGeneratedId()==-1) {
+            if (group.getGeneratedId() == -1) {
                 group.setGeneratedId(idCounter);
                 idCounter++;
             }
         }
-        groups = server.createGroups(groups);
-        shelf.setGroups(groups);
+        GroupPack openedGroup = server.createGroups(groups);
+        shelf.initGroupPack(openedGroup);
         return shelf;
     }
 
@@ -60,10 +62,10 @@ public class ChromeExtracion {
      * @return the shelf with updated data, such as group IDs.
      */
     public Shelf runShelf(Shelf shelf) {
-        List<Group> groupsToOpen = shelf.getGroups();
-        groupsToOpen = server.runAllGroups(groupsToOpen,shelf);
-        //TODO - update shelf data 
-        shelf.setGroups(groupsToOpen);
+        GroupPack groupsToOpen = shelf.getGroups();
+        groupsToOpen.setGroups(server.runAllGroups(groupsToOpen.getList(), shelf));
+        // TODO - update shelf data
+        // shelf.setGroups(groupsToOpen);
 
         return shelf;
     }
@@ -72,26 +74,35 @@ public class ChromeExtracion {
      * Adds tabs to their respective groups and closes all tabs in the new groups.
      * If a tab is not open, it will remain in the shelf.
      * 
-     * @param shelf the shelf containing the groups and tabs.
-     * @param groups  the tabs to be added and/or closed.
+     * @param shelf          the shelf containing the groups and tabs.
+     * @param groupsToUpdate the tabs to be added and/or closed.
      * @return the shelf with updated group and tab data.
      */
-    public Shelf closeShelf(Shelf shelf, List<Group> groups) {
-        List<Group> newGroups = dealWithNewGroups(groups, shelf);
-        newGroups = server.closeAllGroups(newGroups);
-        for (Group group : newGroups) {
-            group.setShelfProperties(shelf);
-            group.markAsClosed();
-        }
-        shelf.setGroups(newGroups);
+    public Shelf closeShelf(Shelf shelf, List<Group> groupsToUpdate) {
+        dealWithGroups(shelf, groupsToUpdate);
+        server.closeAllGroups(shelf.getGroups().getList());
+        shelf.markAsClosed();
         return shelf;
     }
 
-    private List<Group> dealWithNewGroups(List<Group> newGroups,Shelf shelf){
-        newGroups=shelf.cutGroups(newGroups);
-        newGroups = server.createGroups(newGroups);
-        shelf.addGroups(newGroups);
-        return shelf.getGroups();
+    private void dealWithGroups(Shelf shelf, List<Group> groupsToUpdate) {
+        List<Group> groupsToCreate = new ArrayList<>();
+        for(Group groupToAdd:groupsToUpdate){
+            Group currGroup;
+            if((currGroup=shelf.hasGroup(groupToAdd))!=null){
+                currGroup.addTabs(groupToAdd.getTabs());
+            }else{
+                groupToAdd.setShelfProperties(shelf);
+                groupsToCreate.add(groupToAdd);
+            }
+        }
+        
+        insertNewGroups(groupsToCreate, shelf);
+    }
+
+    private void insertNewGroups(List<Group> newGroups, Shelf shelf) {
+        GroupPack diffGroups = server.createGroups(newGroups);
+        shelf.addForiegnGroups(diffGroups);
     }
 
     /**
@@ -107,18 +118,19 @@ public class ChromeExtracion {
         // TODO if there is no connection To connect
     }
 
-    public static void main(String[] args){
-        
+    public static void main(String[] args) {
+
         ExtensionSocketServer s = new ExtensionSocketServer(8887);
         s.start();
         Scanner sc = new Scanner(System.in);
         List<Shelf> shelfs = new ArrayList<>();
-        int idCounter=0;
-        Colors[] colors = new Colors[]{Colors.BLUE,Colors.CYAN,Colors.ORANGE,Colors.RED};
-        Shelf shelf =null;
-        ChromeExtracion c =new ChromeExtracion(s);
+        int idCounter = 0;
+        Colors[] colors = new Colors[] { Colors.BLUE, Colors.CYAN, Colors.ORANGE, Colors.RED };
+        Shelf shelf = null;
+        ChromeExtracion c = new ChromeExtracion(s);
         while (true) {
-            System.out.println("Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New Groups\n3. Close Shelf\n4. open shelf\n5.create new Shelf\n6.move to shelf \n7.Exit");
+            System.out.println(
+                    "Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New Groups\n3. Close Shelf\n4. open shelf\n5.create new Shelf\n6.move to shelf \n7.Exit");
             String input = sc.nextLine();
 
             try {
@@ -145,7 +157,7 @@ public class ChromeExtracion {
                         System.out.println("Closing shelf...");
                         c.closeShelf(shelf, new ArrayList<>());
                         System.out.println("Shelf closed.");
-                        for (Group group : shelf.getGroups()) {
+                        for (Group group : shelf.getGroups().getList()) {
                             System.out.println("group collected:");
                             for (Tab tab : group.getTabs()) {
                                 System.out.println(tab);
@@ -161,13 +173,13 @@ public class ChromeExtracion {
                         String name = sc.nextLine();
                         String colorNumber = sc.nextLine();
                         int colorIndex = Integer.parseInt(colorNumber);
-                        Shelf sh = new Shelf(name, idCounter,colors[colorIndex]);
+                        Shelf sh = new Shelf(name, idCounter, colors[colorIndex]);
                         idCounter++;
                         shelfs.add(sh);
                         break;
                     case 6:
                         System.out.println("enter shelf number:");
-                        int index =Integer.parseInt( sc.nextLine());
+                        int index = Integer.parseInt(sc.nextLine());
                         shelf = shelfs.get(index);
                         break;
                     case 7:

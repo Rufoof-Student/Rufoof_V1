@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.Group;
+import dev.Program.DTOs.GroupPack;
 import dev.Program.DTOs.Window;
 
 public class Shelf {
@@ -11,7 +12,7 @@ public class Shelf {
     private int id;
     private Colors color;
     private String note;
-    private List<Group> groups;
+    private GroupPack groups;
     private List<Window> windows;
     private boolean isOpen;
 
@@ -19,7 +20,7 @@ public class Shelf {
         this.id = id;
         this.name = name;
         this.color= color;
-        groups = new ArrayList<>();
+        // groups = new GroupPack();
     }
 
     public String toString(){
@@ -36,11 +37,17 @@ public class Shelf {
         return color.getColorName();
     }
 
-    public void setGroups(List<Group> groups2) {
+    public void setGroups(GroupPack groups2) {
         groups=groups2;
     }
 
-    public List<Group> cutGroups(List<Group> groups2) {
+    public void initGroupPack(GroupPack g){
+        if(groups==null){
+            groups=g;
+        }
+    }
+
+    public GroupPack getDiffGroups(GroupPack groups2) {
         for (int i = groups2.size() - 1; i >= 0; i--) {
             Group group2 = groups2.get(i);
             for (int j = 0; j < groups.size(); j++) {
@@ -53,11 +60,21 @@ public class Shelf {
         return groups2;
     }
 
-    public void addGroups(List<Group> newGroups) {
-        groups.addAll(newGroups);
+    public void addForiegnGroups(GroupPack newGroups) {
+        groups.addForiegnGroups(newGroups);
     }
 
-    public List<Group> getGroups() {
+    public GroupPack getGroups() {
         return groups;
+    }
+
+    public void markAsClosed() {
+        groups.markAsClosed();
+    }
+
+   
+
+    public Group hasGroup(Group group) {
+        return groups.contains(group);
     }
 }
