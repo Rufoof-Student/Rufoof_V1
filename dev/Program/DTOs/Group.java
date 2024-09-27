@@ -42,7 +42,8 @@ public class Group {
             int chromeGeneratedId = window.get("chromeId").getAsInt();
             JsonArray tabsAsJsonArray = window.get("tabs").getAsJsonArray();
             List<Tab> tabs = Tab.createTabsFromJsonArray(tabsAsJsonArray, nativeWindowId);
-            groupToReturn.add(new Group(nativeWindowId, chromeGeneratedId, tabs));
+            Group groupToAdd = new Group(nativeWindowId, chromeGeneratedId, tabs).filter();
+            if(groupToAdd!=null) groupToReturn.add(groupToAdd);
         }
         return groupToReturn;
     }
@@ -67,6 +68,7 @@ public class Group {
             Group g = (new Group(nativeWindowId, chromeGeneratedId, tabs));
             g.setShelfProperties(shelfForGroups);
             g.setGroupId(window.get("groupId").getAsString());
+
             groupToReturn.add(g);
         }
         return groupToReturn;
@@ -133,6 +135,15 @@ public class Group {
 
     public void setTabs(List<Tab> tabsToKeep) {
         tabs=tabsToKeep;
+    }
+
+    public Group filter(){
+        System.out.println("we hav to filter "+ this.groupId);
+        if(tabs.size()==1 && tabs.get(0).getUrl().equals("chrome://newtab/")){
+            System.out.println("group must be removed");
+            return null;
+        }
+        return this;
     }
 
 }

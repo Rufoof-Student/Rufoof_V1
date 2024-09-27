@@ -24,6 +24,7 @@ public class MainController {
         shelfcController = new ShelfController();
         windowController = new WindowController();
         processController = new ProcessController();
+        ProcessController.initProcesses();
     }
 
     public List<Group> getFreeOpenedTabsAsGroups() {

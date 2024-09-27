@@ -33,7 +33,9 @@ public class WindowController {
     }
 
     public Shelf closeShelf(Shelf s , List<Group> groupToAdd){
-        return extChrome.closeShelf(s, groupToAdd);
+        s=  extChrome.closeShelf(s, groupToAdd);
+        s. markAsClosed();
+        return s;
     }
 
 

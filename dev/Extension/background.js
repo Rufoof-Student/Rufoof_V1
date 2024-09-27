@@ -1,42 +1,40 @@
 import { createGroups, getAllTabsAndWindows } from "./controller.js";
- import { openAllGroups } from "./openShelfController.js";
+import { openAllGroups } from "./openShelfController.js";
 import { closeAllGroups } from "./CloseController.js";
-
+import { getDataForTab } from "./WindowController.js";
 //=====================================================
-
 
 let minutes = 0;
 let seconds = 0;
 let toStop = false;
-const startTheTimer=()=>{
-  const count=()=>{
+const startTheTimer = () => {
+  const count = () => {
     seconds++;
-    if(seconds>=60) {
-      seconds=0;
+    if (seconds >= 60) {
+      seconds = 0;
       minutes++;
     }
-    if(!toStop) setTimeout(count,1000);
-    console.log(minutes+":"+seconds);
-  }
+    if (!toStop) setTimeout(count, 1000);
+    console.log(minutes + ":" + seconds);
+  };
   count();
-}
-function stopAndPrintTimer(){
-  toStop=true;
-  console.log(minutes+" before disconnect");
+};
+function stopAndPrintTimer() {
+  toStop = true;
+  console.log(minutes + " before disconnect");
 }
 startTheTimer();
 
-export function hi(){
-  console.log('hi');
+export function hi() {
+  console.log("hi");
 }
-
 
 //=====================================================
 
-const connectToServer = ()=>{
-  try{
+const connectToServer = () => {
+  try {
     let socket = new WebSocket("ws://localhost:8887"); // Use your server's IP if testing from another PC
-    
+
     socket.onopen = function () {
       console.log("Connected to WebSocket server");
       socket.send("Hello from the browser console!");
@@ -50,8 +48,11 @@ const connectToServer = ()=>{
         if (msg.type === "getWindows") {
           let toSend = "";
           sendDataBackToSocket(await getAllTabsAndWindows(chrome), "Windows");
-        } else if (msg.type === "close") {
-          //TODO
+        } else if (msg.type === "getUrlFor") {
+          console.log("get url for");
+          getDataForTab(chrome, msg.data).then((res) =>
+            sendDataBackToSocket(res, "url")
+          );
         } else if (msg.type === "createNewGroups") {
           createGroups(msg.data, chrome).then((res) =>
             sendDataBackToSocket(res, "done")
@@ -60,12 +61,14 @@ const connectToServer = ()=>{
           closeAllGroups(chrome, msg.data).then((res) =>
             sendDataBackToSocket(res, "closed")
           );
-        } else if(msg.type==="runGroubs"){
-          openAllGroups(chrome,JSON.parse(msg.data)).then(res=>sendDataBackToSocket(res,"running"));
+        } else if (msg.type === "runGroubs") {
+          openAllGroups(chrome, JSON.parse(msg.data)).then((res) =>
+            sendDataBackToSocket(res, "running")
+          );
         }
       }
     };
-    
+
     function sendDataBackToSocket(data, type) {
       console.log(data);
       const dataToSend = JSON.stringify(data);
@@ -77,22 +80,20 @@ const connectToServer = ()=>{
       console.log(dataToSend);
       socket.send(JSON.stringify(packetToSend));
     }
-    
+
     socket.onclose = function (event) {
       console.log("WebSocket closed: " + event.code);
       stopAndPrintTimer();
     };
-    
+
     socket.onerror = function (error) {
       console.error("WebSocket error: " + error.message);
     };
-
-  }catch(e){
+  } catch (e) {
     console.log(e);
   }
-}
+};
 connectToServer();
-
 
 console.log("hiiiii");
 
@@ -103,8 +104,8 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
 // Listener for messages from other parts of the extension
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Message received:", message);
-  if(message.action==="refreshConnection"){
-    console.log("connecting to server ...")
+  if (message.action === "refreshConnection") {
+    console.log("connecting to server ...");
     connectToServer();
   }
   sendResponse({ response: "Message received" });
@@ -118,12 +119,18 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     await chrome.alarms.onAlarm.addListener((alarm) => {
       if (alarm.name === "myAlarm") {
         console.log("Alarm triggered");
-        connectToServer()
+        connectToServer();
       }
     });
   }
 });
 // Listener for browser startup
 chrome.runtime.onStartup.addListener(() => {
+  connectToServer();
+});
+
+chrome.windows.onCreated.addListener((window) => {
+  console.log("New Chrome window opened:", window);
+
   connectToServer();
 });

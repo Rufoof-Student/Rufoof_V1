@@ -17,3 +17,19 @@ export  async function createTabGroupInWindow(chrome,windowId, tabs) {
 
     return groupId;
 }
+
+export async function getDataForTab(chrome,tabDataJson){
+    const tabData = JSON.parse(tabDataJson);
+    console.log("we have to return data for "+tabData.nativeTabId);
+    const tabId = parseInt(tabData.nativeTabId);
+    return await new Promise(async resolve=>{
+        await chrome.tabs.get(tabId,tab=>{
+            if (chrome.runtime.lastError) {
+                resolve({url:null})
+            } else{
+                resolve({url:tab.url});  
+            } 
+        })
+    })
+
+}

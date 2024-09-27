@@ -1,6 +1,6 @@
 package dev.Program.Backend.BusinessLayer.Extractions;
 
-import dev.Program.Backend.BusinessLayer.Process.Process;
+import dev.Program.Backend.BusinessLayer.Process.ProcessObj;
 import dev.Program.Backend.BusinessLayer.Process.ProcessController;
 import dev.Program.DTOs.Window;
 import java.util.List;

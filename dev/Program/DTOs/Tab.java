@@ -61,6 +61,14 @@ public class Tab {
         return title;
     }
 
+
+    public void updateData(String dataJSON){
+        JsonParser jsonParser = new JsonParser();
+        JsonObject jsonData = jsonParser.parse(dataJSON).getAsJsonObject();
+        url = jsonData.get("url")==null ? url :jsonData.get("url").getAsString() ; 
+
+    }
+
     /**
      * JSON structure:[{"windowId": String | int ,"generatedId": int ,"tabs":[{"id": String | int ,"url": String ,"groupId": int(-1) }]
      * @param data

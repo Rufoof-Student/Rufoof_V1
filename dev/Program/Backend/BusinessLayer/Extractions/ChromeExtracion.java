@@ -3,7 +3,7 @@ package dev.Program.Backend.BusinessLayer.Extractions;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.Program.Backend.BusinessLayer.Process.Process;
+import dev.Program.Backend.BusinessLayer.Process.ProcessObj;
 import dev.Program.Backend.BusinessLayer.Process.ProcessController;
 import dev.Program.Backend.BusinessLayer.Server.ChromeWindowToSendSocket;
 import dev.Program.Backend.BusinessLayer.Server.ExtensionSocketServer;
@@ -62,6 +62,9 @@ public class ChromeExtracion {
      * @return the shelf with updated data, such as group IDs.
      */
     public Shelf runShelf(Shelf shelf) {
+        if(!insureConnection()){
+            ProcessController.runChrome();
+        }
         GroupPack groupsToOpen = shelf.getGroups();
         groupsToOpen.setGroups(server.runAllGroups(groupsToOpen.getList(), shelf));
         // TODO - update shelf data
@@ -79,24 +82,41 @@ public class ChromeExtracion {
      * @return the shelf with updated group and tab data.
      */
     public Shelf closeShelf(Shelf shelf, List<Group> groupsToUpdate) {
+        updateShelfTabsURLs(shelf);
         dealWithGroups(shelf, groupsToUpdate);
-        server.closeAllGroups(shelf.getGroups().getList());
-        shelf.markAsClosed();
+        if (insureConnection()) {
+            server.closeAllGroups(shelf.getGroups().getList());
+        }
+        // shelf.markAsClosed();
         return shelf;
+
     }
+
+    private void updateShelfTabsURLs(Shelf shelf){
+        for (Group group : shelf.getGroups().getList()) {
+            for (Tab tab : group.getTabs()) {
+                String id = tab.getNativeTabId();
+                if(id!=null){ 
+                    String newDataAsJson = server.getUpdatedDataForTabAsJSON(id);
+                    tab.updateData(newDataAsJson);
+                }
+            }
+        }
+    }
+
 
     private void dealWithGroups(Shelf shelf, List<Group> groupsToUpdate) {
         List<Group> groupsToCreate = new ArrayList<>();
-        for(Group groupToAdd:groupsToUpdate){
+        for (Group groupToAdd : groupsToUpdate) {
             Group currGroup;
-            if((currGroup=shelf.hasGroup(groupToAdd))!=null){
+            if ((currGroup = shelf.hasGroup(groupToAdd)) != null) {
                 currGroup.addTabs(groupToAdd.getTabs());
-            }else{
+            } else {
                 groupToAdd.setShelfProperties(shelf);
                 groupsToCreate.add(groupToAdd);
             }
         }
-        
+
         insertNewGroups(groupsToCreate, shelf);
     }
 
@@ -111,11 +131,27 @@ public class ChromeExtracion {
      * @return a list of ungrouped (free) tabs.
      */
     public List<Group> getFreeTabs() {
+        if (!insureConnection()) {
+            System.out.println("empty list must be returned");
+            return new ArrayList<>();
+        }
         return server.getCurrentFreeTabs();
     }
 
-    private void insureConnection() {
-        // TODO if there is no connection To connect
+    private boolean insureConnection() {
+        boolean chromeIsOpened = ProcessController.isChromeOpened();
+        boolean extensionConnected = server.connectionIsOpenedWithGoogle();
+        if (chromeIsOpened && !extensionConnected) {
+            ProcessController.runChrome();
+            return true;
+        } else if (!chromeIsOpened) {
+            System.out.println("chrome is not open");
+            return false;
+        } else if (chromeIsOpened && extensionConnected) {
+            return true;
+        }
+        return false;
+
     }
 
     public static void main(String[] args) {

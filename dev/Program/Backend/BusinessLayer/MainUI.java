@@ -23,7 +23,7 @@ public class MainUI extends JFrame {
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-
+        setAlwaysOnTop(true);
         // Layout
         setLayout(new BorderLayout());
 

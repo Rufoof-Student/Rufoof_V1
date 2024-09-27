@@ -64,7 +64,7 @@ public class ExtensionSocketServer extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        synchronized(lock){
+        synchronized (lock) {
             conns.remove(conn);
             lock.notifyAll();
         }
@@ -99,7 +99,7 @@ public class ExtensionSocketServer extends WebSocketServer {
         JsonArray data = jsonParser.parse(JSONdata).getAsJsonArray();
         for (JsonElement windowJsonElement : data) {
             JsonObject windowJsonObject = windowJsonElement.getAsJsonObject();
-            googleWindows.add(new ChromeWindow(convertFromJsonToWindow(windowJsonObject),true));
+            googleWindows.add(new ChromeWindow(convertFromJsonToWindow(windowJsonObject), true));
         }
 
     }
@@ -145,13 +145,12 @@ public class ExtensionSocketServer extends WebSocketServer {
                 Answer res = responses.remove();
                 System.out.println(res.type);
 
-                if (!res.type.equals("Windows")){
+                if (!res.type.equals("Windows")) {
                     System.out.println("Windows not recived!");
                     return null;
                 }
                 return Group.createGroupFromFreeTabsAnswerJSON(res.data);
             }
-            
 
         } catch (Exception ex) {
             System.out.println("An error occured with sinding -getWindows- to the client:");
@@ -240,12 +239,12 @@ public class ExtensionSocketServer extends WebSocketServer {
         String id = windowJsonObject.get("id").getAsString();
         JsonArray tabsJsonArray = windowJsonObject.get("tabs").getAsJsonArray();
         TabToSendSocket[] tabs = new TabToSendSocket[tabsJsonArray.size()];
-        int counter =0;
+        int counter = 0;
         for (JsonElement tabJsonElement : tabsJsonArray) {
             JsonObject tabJsonObject = tabJsonElement.getAsJsonObject();
             TabToSendSocket tabToAdd = new TabToSendSocket(tabJsonObject.get("url").getAsString(),
                     tabJsonObject.get("title").getAsString(), tabJsonObject.get("id").getAsString());
-            tabs[counter]=(tabToAdd);
+            tabs[counter] = (tabToAdd);
             counter++;
         }
         return new ChromeWindowToSendSocket(id, tabs);
@@ -256,7 +255,8 @@ public class ExtensionSocketServer extends WebSocketServer {
         List<Tab> tabs = windowToOpen.getFreeTabs();
         TabToSendSocket[] tabsToSend = new TabToSendSocket[tabs.size()];
         for (int j = 0; j < tabsToSend.length; j++) {
-            tabsToSend[j] = new TabToSendSocket(tabs.get(j).getUrl(), tabs.get(j).getTitle(), tabs.get(j).getNativeTabId());
+            tabsToSend[j] = new TabToSendSocket(tabs.get(j).getUrl(), tabs.get(j).getTitle(),
+                    tabs.get(j).getNativeTabId());
         }
         ChromeWindowToSendSocket windowsToSend = new ChromeWindowToSendSocket(windowToOpen.getId(), tabsToSend);
 
@@ -264,22 +264,23 @@ public class ExtensionSocketServer extends WebSocketServer {
     }
 
     public boolean connectionIsOpenedWithGoogle() {
-        return conns.size()!=0;
+        return conns.size() != 0;
     }
 
-    public ChromeWindow closeAllTabs(ChromeWindow window){
+    public ChromeWindow closeAllTabs(ChromeWindow window) {
 
         List<Tab> tabsToClose = window.getFreeTabs();
         String[] ids = new String[tabsToClose.size()];
-        for(int i=0;i<ids.length;i++){
+        for (int i = 0; i < ids.length; i++) {
             ids[i] = tabsToClose.get(i).getNativeTabId();
         }
         String dataToSend = gson.toJson(ids);
         Question qes = new Question("Close", dataToSend);
         String qesToSend = gson.toJson(qes);
-        synchronized(lock){
-            if(conns.size()==0) return null;
-            WebSocket con =conns.get(0);
+        synchronized (lock) {
+            if (conns.size() == 0)
+                return null;
+            WebSocket con = conns.get(0);
             con.send(qesToSend);
             try {
                 lock.wait();
@@ -288,9 +289,10 @@ public class ExtensionSocketServer extends WebSocketServer {
                 e.printStackTrace();
             }
             Answer res = responses.remove();
-            if(!res.type.equals("closed")) return null;
+            if (!res.type.equals("closed"))
+                return null;
             JsonElement data = jsonParser.parse(res.data);
-            if(data.getAsBoolean()){
+            if (data.getAsBoolean()) {
                 window.markAsClosed();
             }
             window.markTabsAsClosed();
@@ -298,17 +300,15 @@ public class ExtensionSocketServer extends WebSocketServer {
         }
     }
 
-
-
     public GroupPack createGroups(List<Group> groups) {
         Group[] groupsAsArray = new Group[groups.size()];
-        Map<String,Group> dicGroup = new ConcurrentHashMap<>();
-        for(int i=0;i<groups.size();i++){
-            groupsAsArray[i]=groups.get(i);
+        Map<String, Group> dicGroup = new ConcurrentHashMap<>();
+        for (int i = 0; i < groups.size(); i++) {
+            groupsAsArray[i] = groups.get(i);
             dicGroup.put(groups.get(i).getNativeWindowId(), groups.get(i));
         }
-        synchronized(lock){
-            Answer answer = sendAndReciveQeustion("createNewGroups",  gson.toJson(groupsAsArray), "done");
+        synchronized (lock) {
+            Answer answer = sendAndReciveQeustion("createNewGroups", gson.toJson(groupsAsArray), "done");
             JsonArray jsonGroupArray = jsonParser.parse(answer.data).getAsJsonArray();
             List<Group> toRet = new ArrayList<>();
             for (JsonElement jsonElement : jsonGroupArray) {
@@ -321,24 +321,25 @@ public class ExtensionSocketServer extends WebSocketServer {
         }
     }
 
-    private Group[] getGroupAsArray(List<Group> groubsList){
+    private Group[] getGroupAsArray(List<Group> groubsList) {
         Group[] groupsAsArray = new Group[groubsList.size()];
-        for(int i=0;i<groubsList.size();i++){
-            groupsAsArray[i]=groubsList.get(i);
+        for (int i = 0; i < groubsList.size(); i++) {
+            groupsAsArray[i] = groubsList.get(i);
         }
         return groupsAsArray;
     }
 
     public List<Group> closeAllGroups(List<Group> groupsToClose) {
         Group[] groupsAsArray = getGroupAsArray(groupsToClose);
-        synchronized(lock){
+        synchronized (lock) {
             Answer answer = sendAndReciveQeustion("closeAllGroups", gson.toJson(groupsAsArray), "closed");
             JsonArray jsonGroupArray = jsonParser.parse(answer.data).getAsJsonArray();
             for (JsonElement jsonElement : jsonGroupArray) {
                 String windowId = jsonElement.getAsJsonObject().get("nativeWindowId").getAsString();
                 for (Group group : groupsToClose) {
-                    if(group.getNativeWindowId().equals(windowId)){
-                        group.addTabs(Tab.createTabsFromJsonArray(jsonElement.getAsJsonObject().get("tabs").getAsJsonArray(), windowId) );
+                    if (group.getNativeWindowId().equals(windowId)) {
+                        group.addTabs(Tab.createTabsFromJsonArray(
+                                jsonElement.getAsJsonObject().get("tabs").getAsJsonArray(), windowId));
                     }
                 }
             }
@@ -346,12 +347,11 @@ public class ExtensionSocketServer extends WebSocketServer {
         }
     }
 
-    
-
-    private Answer sendAndReciveQeustion(String type,String data,String resType){
-        if(conns.size()==0) return null;
-        System.out.println("data sent to client :"+data);
-        WebSocket con =conns.get(0);
+    private Answer sendAndReciveQeustion(String type, String data, String resType) {
+        if (conns.size() == 0)
+            return null;
+        System.out.println("data sent to client :" + data);
+        WebSocket con = conns.get(0);
         Question question = new Question(type, data);
         con.send(gson.toJson(question));
         try {
@@ -360,17 +360,26 @@ public class ExtensionSocketServer extends WebSocketServer {
             e.printStackTrace();
         }
         Answer answer = responses.remove();
-        if(!answer.type.equals(resType)) return null;
+        if (!answer.type.equals(resType))
+            return null;
         return answer;
     }
 
-    public List<Group> runAllGroups(List<Group> groupsToOpen,Shelf shelf) {
+    public List<Group> runAllGroups(List<Group> groupsToOpen, Shelf shelf) {
         Group[] groupsToSend = getGroupAsArray(groupsToOpen);
-        synchronized(lock){
-            Answer answer = sendAndReciveQeustion("runGroubs", gson.toJson(groupsToSend) , "running");
-            return Group.getAllGroupsAsOpened(answer.data,shelf);
+        synchronized (lock) {
+            Answer answer = sendAndReciveQeustion("runGroubs", gson.toJson(groupsToSend), "running");
+            return Group.getAllGroupsAsOpened(answer.data, shelf);
         }
     }
 
-   
+    public String getUpdatedDataForTabAsJSON(String id) {
+    //    String data = "{\"nativeTabId\":\""+id+"\"}";
+    JsonObject data = new JsonObject();
+    data.addProperty("nativeTabId", id);
+       synchronized(lock){
+            Answer answer = sendAndReciveQeustion("getUrlFor", data.toString(), "url");
+            return answer.data;
+       }
+    }
 }
