@@ -79,7 +79,7 @@ public class ExtensionSocketServer extends WebSocketServer {
             Map<String, Object> msgMap = gson.fromJson(message, Map.class);
             if (msgMap.get("tag").equals("Question")) {
                 Question question = new Question((String) msgMap.get("type"), (String) msgMap.get("data"));
-                dealWithQuestion(question);
+                // dealWithQuestion(question);
             } else if (msgMap.get("tag").equals("Answer")) {
                 Answer answer = new Answer((String) msgMap.get("type"), (String) msgMap.get("data"));
                 synchronized (lock) {
@@ -104,11 +104,7 @@ public class ExtensionSocketServer extends WebSocketServer {
 
     }
 
-    private void dealWithQuestion(Question question) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'dealWithQuestion'");
-    }
-
+  
     @Override
     public void onError(WebSocket conn, Exception ex) {
         System.out.println(ex.getMessage());

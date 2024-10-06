@@ -10,6 +10,8 @@ import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.W32APIOptions;
 
+import dev.Program.DTOs.Exceptions.UserException;
+
 import java.util.*;
 
 public class ProcessController {
@@ -116,7 +118,7 @@ public class ProcessController {
         return false;
     }
 
-    public static void runChrome() {
+    public static void runChrome() throws UserException {
         if (processHistory.containsKey("chrome.exe")) {
             // Specify the path to your .exe file
             String exePath = processHistory.get("chrome.exe");
@@ -135,7 +137,7 @@ public class ProcessController {
                 e.printStackTrace();
             }
         }else{
-            throw new IllegalArgumentException("you have to run google");
+            throw new UserException("you have to run google");
         }
     }
 

@@ -4,6 +4,8 @@ import javax.swing.*;
 
 import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
 import dev.Program.DTOs.*;
+import dev.Program.DTOs.Exceptions.DeveloperException;
+import dev.Program.DTOs.Exceptions.UserException;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -57,7 +59,12 @@ public class MainUI extends JFrame {
         createShelfButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                createShelf();
+                try {
+                    createShelf();
+                } catch (UserException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
                 getShelves();
             }
         });
@@ -73,12 +80,17 @@ public class MainUI extends JFrame {
         closeShelfButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                closeShelf();
+                try {
+                    closeShelf();
+                } catch (UserException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
             }
         });
     }
 
-    private void createShelf() {
+    private void createShelf() throws UserException {
         List<Group> groups = m.getFreeOpenedTabsAsGroups();
         if(groups==null){
             JOptionPane.showMessageDialog(this, "Refresh the extension!!");
@@ -100,7 +112,12 @@ public class MainUI extends JFrame {
         Colors selectedColor = Colors.valueOf(chosenColor.toUpperCase());
 
         // Create the shelf
-        m.createNewShelf(name, selectedColor, null, groups);
+        try {
+            m.createNewShelf(name, selectedColor, null, groups);
+        } catch (DeveloperException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         JOptionPane.showMessageDialog(this, "Shelf created successfully!");
     }
 
@@ -115,14 +132,19 @@ public class MainUI extends JFrame {
     private void openShelf() {
         int selectedShelfIndex = shelfList.getSelectedIndex();
         if (selectedShelfIndex != -1) {
-            m.openShelf(m.getAllShelfs().get(selectedShelfIndex));
+            try {
+                m.openShelf(m.getAllShelfs().get(selectedShelfIndex));
+            } catch (UserException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             JOptionPane.showMessageDialog(this, "Shelf opened successfully!");
         } else {
             JOptionPane.showMessageDialog(this, "Please select a shelf to open.");
         }
     }
 
-    private void closeShelf() {
+    private void closeShelf() throws UserException {
         int selectedShelfIndex = shelfList.getSelectedIndex();
         if (selectedShelfIndex != -1) {
             Shelf shelf = m.getAllShelfs().get(selectedShelfIndex);
