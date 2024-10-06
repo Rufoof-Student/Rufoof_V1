@@ -13,6 +13,7 @@ import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.Group;
 import dev.Program.DTOs.GroupPack;
 import dev.Program.DTOs.Tab;
+import dev.Program.DTOs.Exceptions.UserException;
 import net.bytebuddy.implementation.bytecode.constant.IntegerConstant;
 
 import java.util.Scanner;
@@ -61,8 +62,9 @@ public class ChromeExtracion {
      * 
      * @param shelf the shelf whose groups will be opened.
      * @return the shelf with updated data, such as group IDs.
+     * @throws UserException 
      */
-    public Shelf runShelf(Shelf shelf) {
+    public Shelf runShelf(Shelf shelf) throws UserException {
         if(!insureConnection()){
             ProcessController.runChrome();
         }
@@ -81,8 +83,9 @@ public class ChromeExtracion {
      * @param shelf          the shelf containing the groups and tabs.
      * @param groupsToUpdate the tabs to be added and/or closed.
      * @return the shelf with updated group and tab data.
+     * @throws UserException 
      */
-    public Shelf closeShelf(Shelf shelf, List<Group> groupsToUpdate) {
+    public Shelf closeShelf(Shelf shelf, List<Group> groupsToUpdate) throws UserException {
         updateShelfTabsURLs(shelf);
         dealWithGroups(shelf, groupsToUpdate);
         if (insureConnection()) {
@@ -131,8 +134,9 @@ public class ChromeExtracion {
      * Returns all tabs that are not assigned to any group.
      * 
      * @return a list of ungrouped (free) tabs.
+     * @throws UserException 
      */
-    public List<Group> getFreeTabs() {
+    public List<Group> getFreeTabs() throws UserException {
         if (!insureConnection()) {
             System.out.println("empty list must be returned");
             return new ArrayList<>();
@@ -144,7 +148,7 @@ public class ChromeExtracion {
 
     }
 
-    private boolean insureConnection() {
+    private boolean insureConnection() throws UserException {
         boolean chromeIsOpened = ProcessController.isChromeOpened();
         boolean extensionConnected = server.connectionIsOpenedWithGoogle();
         if (chromeIsOpened && !extensionConnected) {
@@ -161,7 +165,7 @@ public class ChromeExtracion {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UserException {
 
         ExtensionSocketServer s = new ExtensionSocketServer(8887);
         s.start();

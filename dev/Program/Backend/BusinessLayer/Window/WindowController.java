@@ -8,6 +8,7 @@ import dev.Program.Backend.BusinessLayer.Extractions.Extraction;
 import dev.Program.Backend.BusinessLayer.Server.ExtensionSocketServer;
 import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
 import dev.Program.DTOs.*;
+import dev.Program.DTOs.Exceptions.UserException;
 
 public class WindowController {
     private List<WindowType> types;
@@ -24,15 +25,15 @@ public class WindowController {
         return extChrome.createNewGroups(toCreate, tabsToInclude);
     }
     
-    public List<Group> getFreeTabs(){
+    public List<Group> getFreeTabs() throws UserException{
         return extChrome.getFreeTabs();
     }
 
-    public Shelf openShelf(Shelf s) {
+    public Shelf openShelf(Shelf s) throws UserException {
        return extChrome.runShelf(s);
     }
 
-    public Shelf closeShelf(Shelf s , List<Group> groupToAdd){
+    public Shelf closeShelf(Shelf s , List<Group> groupToAdd) throws UserException{
         s=  extChrome.closeShelf(s, groupToAdd);
         s. markAsClosed();
         return s;

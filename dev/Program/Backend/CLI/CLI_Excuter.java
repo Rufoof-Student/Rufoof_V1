@@ -12,7 +12,8 @@ import dev.Program.Backend.BusinessLayer.MainController;
 import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
 import dev.Program.Backend.BusinessLayer.Window.WindowController;
 import dev.Program.DTOs.Window;
-
+import dev.Program.DTOs.Exceptions.DeveloperException;
+import dev.Program.DTOs.Exceptions.UserException;
 import dev.Program.Backend.BusinessLayer.Shelf.ShelfController;
 
 public class CLI_Excuter {
@@ -28,7 +29,7 @@ public class CLI_Excuter {
         System.out.println("\u001B[36m" + toPrint + "\u001B[0m");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UserException {
         Scanner sc = new Scanner(System.in);
         boolean toExit = false;
         MainController main = new MainController();
@@ -71,7 +72,7 @@ public class CLI_Excuter {
 
     }
 
-    private static void createNewShelf(ShelfService service, Scanner sc, MainController main) {
+    private static void createNewShelf(ShelfService service, Scanner sc, MainController main) throws UserException {
         print("here are all your open tabs, please choose the tabs you want to include in your new shelf .\n after finishing all the tabs write Done");
         List<Group> avalibaleGroups = main.getFreeOpenedTabsAsGroups();
         String[][] IdsForGroupTabs = getTabsIds(avalibaleGroups);
@@ -90,10 +91,15 @@ public class CLI_Excuter {
         print("please choose the color you want from\n{BLUE,Colors.CYAN,Colors.ORANGE,Colors.RED}");
         int number = Integer.parseInt(sc.nextLine());
         Colors[] colors = new Colors[] { Colors.BLUE, Colors.CYAN, Colors.ORANGE, Colors.RED };
-        main.createNewShelf(name, colors[number], null, avalibaleGroups);
+        try {
+            main.createNewShelf(name, colors[number], null, avalibaleGroups);
+        } catch (DeveloperException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
-    private static void openShelf(MainController main, Scanner sc) {
+    private static void openShelf(MainController main, Scanner sc) throws UserException {
         print("Enter the number of shelf you want to open");
         try {
             main.openShelf(main.getAllShelfs().get(Integer.parseInt(sc.nextLine())));
@@ -105,7 +111,7 @@ public class CLI_Excuter {
     private static void removeShelf(int id) {
     }
 
-    private static void closeShelf(Scanner sc, MainController main) {
+    private static void closeShelf(Scanner sc, MainController main) throws UserException {
         List<Group> avalibaleGroups = main.getFreeOpenedTabsAsGroups();
         String[][] IdsForGroupTabs = getTabsIds(avalibaleGroups);
         print("enter the shelf nunber you want to close");
@@ -173,7 +179,7 @@ public class CLI_Excuter {
         }
     }
 
-    private Shelf closeShelf(Shelf s, List<Group> groups) {
+    private Shelf closeShelf(Shelf s, List<Group> groups) throws UserException {
         return windowController.closeShelf(s, groups);
     }
 

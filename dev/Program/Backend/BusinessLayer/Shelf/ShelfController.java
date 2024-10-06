@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import dev.Program.DTOs.Colors;
+import dev.Program.DTOs.Exceptions.DeveloperException;
 
 public class ShelfController {
     private Map<Integer, Shelf> shelfs;
@@ -20,9 +21,9 @@ public class ShelfController {
         return new Shelf(name, idCounter++ , color);
     }
 
-    public void saveShelf(Shelf toSave) {
+    public void saveShelf(Shelf toSave) throws DeveloperException {
         if(shelfs.containsKey(toSave.getId())){
-            throw new IllegalArgumentException("trying to save the same key on shelf controller");
+            throw new DeveloperException("trying to save the same key on shelf controller");
         }
         shelfs.put(toSave.getId(), toSave);
     }
