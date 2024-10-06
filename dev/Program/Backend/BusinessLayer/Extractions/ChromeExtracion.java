@@ -52,6 +52,7 @@ public class ChromeExtracion {
         }
         GroupPack openedGroup = server.createGroups(groups);
         shelf.initGroupPack(openedGroup);
+
         return shelf;
     }
 
@@ -69,7 +70,7 @@ public class ChromeExtracion {
         groupsToOpen.setGroups(server.runAllGroups(groupsToOpen.getList(), shelf));
         // TODO - update shelf data
         // shelf.setGroups(groupsToOpen);
-
+        server.filterEmptyTabs();
         return shelf;
     }
 
@@ -88,6 +89,7 @@ public class ChromeExtracion {
             server.closeAllGroups(shelf.getGroups().getList());
         }
         // shelf.markAsClosed();
+        server.filterEmptyTabs();
         return shelf;
 
     }
@@ -135,7 +137,11 @@ public class ChromeExtracion {
             System.out.println("empty list must be returned");
             return new ArrayList<>();
         }
-        return server.getCurrentFreeTabs();
+
+        List<Group> toRet =server.getCurrentFreeTabs();
+        server.filterEmptyTabs();
+        return toRet;
+
     }
 
     private boolean insureConnection() {
@@ -143,6 +149,7 @@ public class ChromeExtracion {
         boolean extensionConnected = server.connectionIsOpenedWithGoogle();
         if (chromeIsOpened && !extensionConnected) {
             ProcessController.runChrome();
+
             return true;
         } else if (!chromeIsOpened) {
             System.out.println("chrome is not open");

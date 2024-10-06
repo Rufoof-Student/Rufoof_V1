@@ -1,7 +1,7 @@
 import { createGroups, getAllTabsAndWindows } from "./controller.js";
 import { openAllGroups } from "./openShelfController.js";
 import { closeAllGroups } from "./CloseController.js";
-import { getDataForTab } from "./WindowController.js";
+import { getDataForTab,closeSpecificTabs } from "./WindowController.js";
 //=====================================================
 
 let minutes = 0;
@@ -65,6 +65,8 @@ const connectToServer = () => {
           openAllGroups(chrome, JSON.parse(msg.data)).then((res) =>
             sendDataBackToSocket(res, "running")
           );
+        }else if(msg.type === "filter"){
+          closeSpecificTabs(chrome).then(res=>sendDataBackToSocket({},"filtered"));
         }
       }
     };

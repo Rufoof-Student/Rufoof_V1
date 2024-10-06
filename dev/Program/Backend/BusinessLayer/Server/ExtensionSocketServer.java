@@ -374,12 +374,19 @@ public class ExtensionSocketServer extends WebSocketServer {
     }
 
     public String getUpdatedDataForTabAsJSON(String id) {
-    //    String data = "{\"nativeTabId\":\""+id+"\"}";
-    JsonObject data = new JsonObject();
-    data.addProperty("nativeTabId", id);
-       synchronized(lock){
+        // String data = "{\"nativeTabId\":\""+id+"\"}";
+        JsonObject data = new JsonObject();
+        data.addProperty("nativeTabId", id);
+        synchronized (lock) {
             Answer answer = sendAndReciveQeustion("getUrlFor", data.toString(), "url");
             return answer.data;
-       }
+        }
     }
+
+    public void filterEmptyTabs(){
+        synchronized(lock){
+            sendAndReciveQeustion("filter", "{}", "filtered");
+        }
+    }
+
 }

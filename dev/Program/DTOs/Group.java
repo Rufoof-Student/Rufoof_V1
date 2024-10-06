@@ -140,7 +140,8 @@ public class Group {
     public Group filter(){
         System.out.println("we hav to filter "+ this.groupId);
         if(tabs.size()==1 && tabs.get(0).getUrl().equals("chrome://newtab/")){
-            System.out.println("group must be removed");
+
+            System.out.println("group must be removed "+getNativeWindowId()+" - "+tabs.get(0).getNativeTabId());
             return null;
         }
         return this;

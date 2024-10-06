@@ -127,7 +127,7 @@ public class ProcessController {
             try {
                 // Start the process
                 Process process = processBuilder.start();
-                Thread.currentThread().sleep(4000);
+                Thread.currentThread().sleep(1000);
                 // Wait for the process to complete (optional)
                 // int exitCode = process.waitFor();
                 // System.out.println("Process exited with code: " + exitCode);
