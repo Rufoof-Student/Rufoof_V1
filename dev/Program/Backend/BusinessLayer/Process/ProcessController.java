@@ -66,14 +66,16 @@ public class ProcessController {
                     System.out.println(
                             "Window position: (" + rect.left + ", " + rect.top + ")" + rect.toRectangle().getWidth());
                     System.out.println("Window size: " + (rect.right - rect.left) + " x " + (rect.bottom - rect.top));
+                    processToAdd.setProcessTitle(wText);
                     // Close the process handle
 
-                    // if (!oneChomeIsClosed && getExeWindowName(processName).equals("chrome.exe")) {
-                    //     boolean res = Kernel32.INSTANCE.TerminateProcess(processHandle, 0);
-                    //     if (!res)
-                    //         System.out.println("faild");
-                    //     else
-                    //         oneChomeIsClosed = true;
+                    // if (!oneChomeIsClosed && getExeWindowName(processName).equals("chrome.exe"))
+                    // {
+                    // boolean res = Kernel32.INSTANCE.TerminateProcess(processHandle, 0);
+                    // if (!res)
+                    // System.out.println("faild");
+                    // else
+                    // oneChomeIsClosed = true;
                     // }
 
                     String exeName = getExeWindowName(processName);
@@ -136,7 +138,7 @@ public class ProcessController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else{
+        } else {
             throw new UserException("you have to run google");
         }
     }
@@ -159,10 +161,10 @@ public class ProcessController {
                 // System.out.println(process.pid());
                 // Thread.currentThread().sleep(seconds);
                 // if (process.isAlive()) {
-                //     process.destroy();
-                //     System.out.println("Process terminated.");
+                // process.destroy();
+                // System.out.println("Process terminated.");
                 // } else {
-                //     System.out.println("Process already finished.");
+                // System.out.println("Process already finished.");
                 // }
 
                 // process.destroy();
@@ -176,12 +178,18 @@ public class ProcessController {
     public static void main(String[] args) {
         initProcesses();
         // try {
-        //     Thread.currentThread().sleep(10000);
+        // Thread.currentThread().sleep(10000);
         // } catch (InterruptedException e) {
-        //     // TODO Auto-generated catch block
-        //     e.printStackTrace();
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
         // }
         // runChromeFor(5000);
         // initProcesses();
     }
+
+    public static List<ProcessObj> getRunningProccesses() {
+        initProcesses();
+        return processes;
+    }
+
 }
