@@ -117,18 +117,17 @@ public class ProcessController {
         initProcesses();
         for (ProcessObj process : processes) {
 
-            if (getExeWindowName(process.getExePath()).equals("chrome.exe")
-                    || process.getExePath().endsWith("msedge.exe"))
+            if (process.getExePath().endsWith(chromeEngineName))
                 return true;
 
         }
         return false;
     }
 
-    public static void runChrome() throws UserException {
-        if (processHistory.containsKey("chrome.exe")) {
+    public static void runChrome(String chromeEngineName) throws UserException {
+        if (processHistory.containsKey(chromeEngineName)) {
             // Specify the path to your .exe file
-            String exePath = processHistory.get("chrome.exe");
+            String exePath = processHistory.get(chromeEngineName);
 
             // Create the process builder
             ProcessBuilder processBuilder = new ProcessBuilder(exePath);
@@ -184,19 +183,20 @@ public class ProcessController {
         initProcesses();
         // removeBlankApp("Word", "WINWORD.EXE");
         // User32.INSTANCE.EnumWindows(new WinUser.WNDENUMPROC() {
-        //     @Override
-        //     public boolean callback(WinDef.HWND hwnd, Pointer arg1) {
-        //         char[] windowText = new char[512];
-        //         User32.INSTANCE.GetWindowText(hwnd, windowText, 512);
-        //         String wText = Native.toString(windowText);
+        // @Override
+        // public boolean callback(WinDef.HWND hwnd, Pointer arg1) {
+        // char[] windowText = new char[512];
+        // User32.INSTANCE.GetWindowText(hwnd, windowText, 512);
+        // String wText = Native.toString(windowText);
 
-        //         // Filter by Adobe Reader or any PDF viewer
-        //         if (!wText.isEmpty()
-        //                 && (wText.contains(".pdf") || wText.contains("Adobe Reader") || wText.contains("Edge"))) {
-        //             System.out.println("Window title: " + wText);
-        //         }
-        //         return true;
-        //     }
+        // // Filter by Adobe Reader or any PDF viewer
+        // if (!wText.isEmpty()
+        // && (wText.contains(".pdf") || wText.contains("Adobe Reader") ||
+        // wText.contains("Edge"))) {
+        // System.out.println("Window title: " + wText);
+        // }
+        // return true;
+        // }
         // }, null);
     }
 
@@ -245,5 +245,4 @@ public class ProcessController {
         }, null);
     }
 
-   
 }

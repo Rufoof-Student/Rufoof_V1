@@ -15,30 +15,39 @@ public class WindowController {
     private Map<WindowType,Extraction> extractions;
     private ChromeExtracion extChrome ;
     private ChromeExtracion extEdg;
-    public WindowController(){
+    public WindowController(List<Shelf> shelfs){
         ExtensionSocketServer socket = new ExtensionSocketServer(8887);
         socket.start();
-        extChrome =new ChromeExtracion(socket,"chrome.exe");
-        extEdg = new ChromeExtracion(socket, "msedge.exe");
+        extChrome =new ChromeExtracion(socket,"chrome.exe",shelfs);
+        extEdg = new ChromeExtracion(socket, "msedge.exe",shelfs);
     }
 
-    public Shelf addGroupsToShelf(Shelf toCreate, List<Group> tabsToInclude) {
-        
-        return extChrome.createNewGroups(toCreate, tabsToInclude);
+    public Shelf addGroupsToShelf(Shelf toCreate, List<Group> tabsToInclude,String chromeEngineName) {
+        for (Group group : tabsToInclude) {
+            group.setShelfProperties(toCreate);
+        }
+        ChromeExtracion ext = getExt(chromeEngineName);
+        ext.createNewGroups(toCreate.getId(), tabsToInclude);
+        return toCreate;
     }
     
-    public List<Group> getFreeTabs() throws UserException{
+    public List<Group> getFreeTabs(String engineName) throws UserException{
+        ChromeExtracion ext = getExt(engineName);
         return extChrome.getFreeTabs();
     }
 
-    public Shelf openShelf(Shelf s) throws UserException {
-        if(!s.hasGoogleGroups() )return s;
-       return extChrome.runShelf(s);
+    private ChromeExtracion getExt(String engineName) {
+        return engineName=="chrome.exe"?extChrome:extEdg;
     }
 
-    public Shelf closeShelf(Shelf s , List<Group> groupToAdd) throws UserException{
+    public Shelf openShelf(Shelf s,String engineName) throws UserException {
         
-        s=  extChrome.closeShelf(s, groupToAdd);
+       return getExt(engineName).runShelf(s);
+    }
+
+    public Shelf closeShelf(Shelf s , List<Group> groupToAdd,String engineNeme) throws UserException{
+        
+        s=  getExt(engineNeme).closeShelf(s, groupToAdd);
         
         return s;
     }

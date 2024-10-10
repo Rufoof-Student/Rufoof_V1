@@ -91,7 +91,7 @@ public class MainUI extends JFrame {
     }
 
     private void createShelf() throws UserException {
-        List<Group> groups = m.getFreeOpenedTabsAsGroups();
+        List<Group> groups = m.getFreeOpenedTabsAsGroups("chrome.exe");
         List<MicroApp> microApps = m.getFreeOpenedMicroApps();
         if (groups == null) {
             JOptionPane.showMessageDialog(this, "Refresh the extension!!");
@@ -115,7 +115,7 @@ public class MainUI extends JFrame {
 
         // Create the shelf
         try {
-            m.createNewShelf(name, selectedColor, microApps, groups);
+            m.createNewShelf(name, selectedColor, microApps, groups,"chrome.exe");
         } catch (DeveloperException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -135,7 +135,7 @@ public class MainUI extends JFrame {
         int selectedShelfIndex = shelfList.getSelectedIndex();
         if (selectedShelfIndex != -1) {
             try {
-                m.openShelf(m.getAllShelfs().get(selectedShelfIndex));
+                m.openShelf(m.getAllShelfs().get(selectedShelfIndex),"chrome.exe");
             } catch (UserException | DeveloperException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -151,7 +151,7 @@ public class MainUI extends JFrame {
         if (selectedShelfIndex != -1) {
             Shelf shelf = m.getAllShelfs().get(selectedShelfIndex);
             // Get the open tabs and allow the user to select/deselect them
-            List<Group> groups = m.getFreeOpenedTabsAsGroups();
+            List<Group> groups = m.getFreeOpenedTabsAsGroups("chrome.exe");
             List<MicroApp> microApp = m.getFreeOpenedMicroApps();
             System.out.println("----------------------------------");
             if (groups == null) {
@@ -163,7 +163,7 @@ public class MainUI extends JFrame {
             System.out.println("the apps to add is null ? "+microApp==null);
             // Close the shelf with the updated groups
             try {
-                m.closeShelf(shelf, groups, microApp);
+                m.closeShelf(shelf, groups, microApp,"chrome.exe");
             } catch (UserException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

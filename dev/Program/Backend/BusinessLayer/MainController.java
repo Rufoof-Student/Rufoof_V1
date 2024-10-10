@@ -28,25 +28,25 @@ public class MainController {
 
     public MainController() {
         shelfcController = new ShelfController();
-        windowController = new WindowController();
+        windowController = new WindowController(shelfcController.getAllShelfsAsList());
         processController = new ProcessController();
         microAppsController = new MicroAppController(
                 shelfcController.getAllShelfsAsList().stream().map((s) -> s.getId()).toList());
         ProcessController.initProcesses();
     }
 
-    public List<Group> getFreeOpenedTabsAsGroups() throws UserException {
-        return windowController.getFreeTabs();
+    public List<Group> getFreeOpenedTabsAsGroups(String engineName) throws UserException {
+        return windowController.getFreeTabs(engineName);
     }
 
     public List<MicroApp> getFreeOpenedMicroApps() {
         return microAppsController.extractFreeRunningMicroApps();
     }
 
-    public Shelf createNewShelf(String name, Colors color, List<MicroApp> windowsToInclude, List<Group> tabsToInclude)
+    public Shelf createNewShelf(String name, Colors color, List<MicroApp> windowsToInclude, List<Group> tabsToInclude,String engineName)
             throws DeveloperException {
         Shelf toCreate = shelfcController.getNewShelf(name, color);
-        toCreate = windowController.addGroupsToShelf(toCreate, tabsToInclude);
+        toCreate = windowController.addGroupsToShelf(toCreate, tabsToInclude,engineName);
         // =====================
         microAppsController.createShelf(toCreate.getId());
         microAppsController.addMicroAppToUsedList(windowsToInclude, toCreate.getId());
@@ -59,19 +59,19 @@ public class MainController {
         return shelfcController.getAllShelfsAsList();
     }
 
-    public Shelf closeShelf(Shelf s, List<Group> groups, List<MicroApp> appsToAdd)
+    public Shelf closeShelf(Shelf s, List<Group> groups, List<MicroApp> appsToAdd,String engineName)
             throws UserException, DeveloperException {
                 System.out.println("start closing the shelf!");
         microAppsController.closeShelfsApps(s.getId(), appsToAdd);
         Relax.Relax(500);
-        windowController.closeShelf(s, groups);
+        windowController.closeShelf(s, groups,engineName);
         s.markAsClosed();
         return s;
     }
 
 
-    public void openShelf(Shelf s) throws UserException, DeveloperException {
-        Shelf toUpdate = windowController.openShelf(s);
+    public void openShelf(Shelf s,String engineName) throws UserException, DeveloperException {
+        Shelf toUpdate = windowController.openShelf(s,engineName);
         microAppsController.openAppsForShelf(s.getId());
 
     }
