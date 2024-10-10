@@ -14,14 +14,16 @@ public class WindowController {
     private List<WindowType> types;
     private Map<WindowType,Extraction> extractions;
     private ChromeExtracion extChrome ;
-
+    private ChromeExtracion extEdg;
     public WindowController(){
         ExtensionSocketServer socket = new ExtensionSocketServer(8887);
         socket.start();
-        extChrome =new ChromeExtracion(socket);
+        extChrome =new ChromeExtracion(socket,"chrome.exe");
+        extEdg = new ChromeExtracion(socket, "msedge.exe");
     }
 
     public Shelf addGroupsToShelf(Shelf toCreate, List<Group> tabsToInclude) {
+        
         return extChrome.createNewGroups(toCreate, tabsToInclude);
     }
     
@@ -30,12 +32,14 @@ public class WindowController {
     }
 
     public Shelf openShelf(Shelf s) throws UserException {
+        if(!s.hasGoogleGroups() )return s;
        return extChrome.runShelf(s);
     }
 
     public Shelf closeShelf(Shelf s , List<Group> groupToAdd) throws UserException{
+        
         s=  extChrome.closeShelf(s, groupToAdd);
-        s. markAsClosed();
+        
         return s;
     }
 

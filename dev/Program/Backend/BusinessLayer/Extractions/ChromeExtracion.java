@@ -16,7 +16,7 @@ import dev.Program.DTOs.Tab;
 import dev.Program.DTOs.Exceptions.UserException;
 import net.bytebuddy.implementation.bytecode.constant.IntegerConstant;
 
-import java.util.Scanner;
+import java.util.*;
 
 import org.openqa.selenium.support.Color;
 
@@ -25,14 +25,13 @@ public class ChromeExtracion {
     private ExtensionSocketServer server;
     private List<ChromeWindow> runningWindows;
     private int idCounter;
+    private String chromeEngineName ;
+    private Map<Integer,GroupPack> shelfId2Group;
 
-    public ChromeExtracion(ExtensionSocketServer server) {
+
+    public ChromeExtracion(ExtensionSocketServer server,String engineName) {
         this.server = server;
-        // runningWindows = server.getCurrentFreeTabs();
-        // for (ChromeWindow chromeWindow : runningWindows) {
-        // idCounter =
-        // idCounter<chromeWindow.getChromeId()?chromeWindow.getChromeId():idCounter;
-        // }
+        chromeEngineName = engineName;
     }
 
     /**
@@ -65,7 +64,7 @@ public class ChromeExtracion {
      * @throws UserException 
      */
     public Shelf runShelf(Shelf shelf) throws UserException {
-        if(!insureConnection()){
+        if(!insureConnection() && shelf.hasGoogleGroups()){
             ProcessController.runChrome();
         }
         GroupPack groupsToOpen = shelf.getGroups();
@@ -86,13 +85,19 @@ public class ChromeExtracion {
      * @throws UserException 
      */
     public Shelf closeShelf(Shelf shelf, List<Group> groupsToUpdate) throws UserException {
+        System.out.println("we have to update and close the shelf");
+
         updateShelfTabsURLs(shelf);
+        System.out.println("shelf has been updated!");
         dealWithGroups(shelf, groupsToUpdate);
+
+        System.out.println("done dealing with groups");
         if (insureConnection()) {
             server.closeAllGroups(shelf.getGroups().getList());
         }
-        // shelf.markAsClosed();
+        System.out.println("we have to filter empty tabs");
         server.filterEmptyTabs();
+        System.out.println("all tabs must be closed");
         return shelf;
 
     }
@@ -149,7 +154,7 @@ public class ChromeExtracion {
     }
 
     private boolean insureConnection() throws UserException {
-        boolean chromeIsOpened = ProcessController.isChromeOpened();
+        boolean chromeIsOpened = ProcessController.isChromeOpened(chromeEngineName);
         boolean extensionConnected = server.connectionIsOpenedWithGoogle();
         if (chromeIsOpened && !extensionConnected) {
             ProcessController.runChrome();
@@ -174,7 +179,7 @@ public class ChromeExtracion {
         int idCounter = 0;
         Colors[] colors = new Colors[] { Colors.BLUE, Colors.CYAN, Colors.ORANGE, Colors.RED };
         Shelf shelf = null;
-        ChromeExtracion c = new ChromeExtracion(s);
+        ChromeExtracion c = new ChromeExtracion(s,"");
         while (true) {
             System.out.println(
                     "Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New Groups\n3. Close Shelf\n4. open shelf\n5.create new Shelf\n6.move to shelf \n7.Exit");

@@ -35,8 +35,23 @@ const connectToServer = () => {
   try {
     let socket = new WebSocket("ws://localhost:8887"); // Use your server's IP if testing from another PC
 
-    socket.onopen = function () {
-      console.log("Connected to WebSocket server");
+    socket.onopen = async function () {
+      console.log("Connected to WebSocket server");// content.js or background.js
+      await chrome.runtime.getBrowserInfo().then(function(info) {
+          // info contains details about the browser
+          console.log("Browser Name: " + info.name);
+          console.log("Browser Version: " + info.version);
+      
+          if (info.name === "Google Chrome") {
+              socket.send("chrome.exe");
+          } else if (info.name === "Microsoft Edge") {
+            socket.send("msedge.exe");
+          } else {
+              console.log("Running in an unknown browser: " + info.name);
+          }
+      }).catch(function(error) {
+          console.error("Error getting browser info: ", error);
+      });
       socket.send("Hello from the browser console!");
       // print5ra();
     };
