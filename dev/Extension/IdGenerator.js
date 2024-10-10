@@ -33,7 +33,7 @@ export async function getGeneratedIdForWindow(windowId, chrome) {
     async (chromeIdDict) => {
       console.log("joining the get genereated id");
       //   return await new Promise(async (resolve) => {
-      if (chromeIdDict === null || chromeIdDict===undefined) {
+      if (chromeIdDict === null || chromeIdDict === undefined) {
         return -1;
       }
       console.log(chromeIdDict);
@@ -67,6 +67,7 @@ async function getNewGeneratedChromeId(chrome) {
         resolve(0);
       } else {
         console.log(res);
+        if(res["idGenerator"]===undefined) res["idGenerator"]=0;
         await chrome.storage.local.set({ idGenerator: res["idGenerator"] + 1 }, () =>
           console.log("generator has been increased")
         );

@@ -39,7 +39,7 @@ export async function closeSpecificTabs(chrome) {
     await chrome.tabs.query({}, function(tabs) {
         tabs.forEach(function(tab) {
             // Check if the tab's URL starts with 'http:x'
-            if (tab.url && tab.url.startsWith("chrome://newtab/")) {
+            if (tab.url && (tab.url.startsWith("chrome://newtab/")||tab.url.startsWith("edge://newtab/"))) {
                 // Close the tab
                 chrome.tabs.remove(tab.id);
             }

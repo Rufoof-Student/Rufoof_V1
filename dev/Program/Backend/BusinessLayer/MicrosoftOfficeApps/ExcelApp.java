@@ -13,6 +13,7 @@ import dev.Program.DTOs.Exceptions.UserException;
 public class ExcelApp extends MicroApp {
 
     public ExcelApp() {
+        super("Excel");
         appName = "Excel.Application";
         fileFormat = ".xlsx";
         blankAppName="Excel";

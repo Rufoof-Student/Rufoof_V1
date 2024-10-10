@@ -1,33 +1,8 @@
 import { createGroups, getAllTabsAndWindows } from "./controller.js";
 import { openAllGroups } from "./openShelfController.js";
 import { closeAllGroups } from "./CloseController.js";
-import { getDataForTab,closeSpecificTabs } from "./WindowController.js";
+import { getDataForTab, closeSpecificTabs } from "./WindowController.js";
 //=====================================================
-
-let minutes = 0;
-let seconds = 0;
-let toStop = false;
-const startTheTimer = () => {
-  const count = () => {
-    seconds++;
-    if (seconds >= 60) {
-      seconds = 0;
-      minutes++;
-    }
-    if (!toStop) setTimeout(count, 1000);
-    console.log(minutes + ":" + seconds);
-  };
-  count();
-};
-function stopAndPrintTimer() {
-  toStop = true;
-  console.log(minutes + " before disconnect");
-}
-startTheTimer();
-
-export function hi() {
-  console.log("hi");
-}
 
 //=====================================================
 
@@ -36,23 +11,21 @@ const connectToServer = () => {
     let socket = new WebSocket("ws://localhost:8887"); // Use your server's IP if testing from another PC
 
     socket.onopen = async function () {
-      console.log("Connected to WebSocket server");// content.js or background.js
-      await chrome.runtime.getBrowserInfo().then(function(info) {
-          // info contains details about the browser
-          console.log("Browser Name: " + info.name);
-          console.log("Browser Version: " + info.version);
-      
-          if (info.name === "Google Chrome") {
-              socket.send("chrome.exe");
-          } else if (info.name === "Microsoft Edge") {
-            socket.send("msedge.exe");
-          } else {
-              console.log("Running in an unknown browser: " + info.name);
-          }
-      }).catch(function(error) {
-          console.error("Error getting browser info: ", error);
-      });
-      socket.send("Hello from the browser console!");
+      console.log("Connected to WebSocket server"); // content.js or background.js
+      const userAgent = navigator.userAgent;
+      console.log(userAgent);
+
+      if (userAgent.indexOf("Chrome") !== -1) {
+        if (userAgent.indexOf("Edg") !== -1) {
+          socket.send(JSON.stringify({ tag: "Answer", type: "engineName", data: "msedge.exe" }));
+        } else {
+          socket.send(JSON.stringify({ tag: "Answer", type: "engineName", data: "chrome.exe" }));
+        }
+      } else {
+        console.log("Running in another browser");
+      }
+
+      // socket.send("Hello from the browser console!");
       // print5ra();
     };
     let urlSended = false;
@@ -80,8 +53,10 @@ const connectToServer = () => {
           openAllGroups(chrome, JSON.parse(msg.data)).then((res) =>
             sendDataBackToSocket(res, "running")
           );
-        }else if(msg.type === "filter"){
-          closeSpecificTabs(chrome).then(res=>sendDataBackToSocket({},"filtered"));
+        } else if (msg.type === "filter") {
+          closeSpecificTabs(chrome).then((res) =>
+            sendDataBackToSocket({}, "filtered")
+          );
         }
       }
     };
@@ -100,7 +75,7 @@ const connectToServer = () => {
 
     socket.onclose = function (event) {
       console.log("WebSocket closed: " + event.code);
-      stopAndPrintTimer();
+      // stopAndPrintTimer();
     };
 
     socket.onerror = function (error) {

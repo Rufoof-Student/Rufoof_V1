@@ -14,6 +14,7 @@ public class WordApp extends MicroApp {
 
 
     public WordApp() {
+        super("Word");
         appName = "Word.Application";
         fileFormat = ".docx";
         blankAppName="Word";
