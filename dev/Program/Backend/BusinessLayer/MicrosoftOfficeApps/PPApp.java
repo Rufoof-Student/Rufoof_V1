@@ -16,6 +16,7 @@ import dev.Program.DTOs.Exceptions.UserException;
 public class PPApp extends MicroApp {
 
     public PPApp() {
+        super("Power Point");
         appName = "PowerPoint.Application";
         fileFormat = ".pptx";
         blankAppName = "PowerPoint";

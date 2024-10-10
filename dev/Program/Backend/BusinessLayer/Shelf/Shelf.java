@@ -12,7 +12,7 @@ public class Shelf {
     private int id;
     private Colors color;
     private String note;
-    private GroupPack groups;
+    // private GroupPack groups;
     private List<Window> windows;
     private boolean isOpen;
 
@@ -37,48 +37,49 @@ public class Shelf {
         return color.getColorName();
     }
 
-    public void setGroups(GroupPack groups2) {
-        groups=groups2;
-    }
+    // public void setGroups(GroupPack groups2) {
+    //     groups=groups2;
+    // }
 
-    public void initGroupPack(GroupPack g){
-        if(groups==null){
-            groups=g;
-        }
-    }
+    // public void initGroupPack(GroupPack g){
+    //     if(groups==null){
+    //         groups=g;
+    //     }
+    // }
 
-    public GroupPack getDiffGroups(GroupPack groups2) {
-        for (int i = groups2.size() - 1; i >= 0; i--) {
-            Group group2 = groups2.get(i);
-            for (int j = 0; j < groups.size(); j++) {
-                Group group = groups.get(j);
-                if (group.getNativeWindowId().equals(group2.getNativeWindowId())) {
-                    groups2.remove(i);
-                }
-            }
-        }
-        return groups2;
-    }
+    // public GroupPack getDiffGroups(GroupPack groups2) {
+    //     for (int i = groups2.size() - 1; i >= 0; i--) {
+    //         Group group2 = groups2.get(i);
+    //         for (int j = 0; j < groups.size(); j++) {
+    //             Group group = groups.get(j);
+    //             if (group.getNativeWindowId().equals(group2.getNativeWindowId())) {
+    //                 groups2.remove(i);
+    //             }
+    //         }
+    //     }
+    //     return groups2;
+    // }
 
-    public void addForiegnGroups(GroupPack newGroups) {
-        groups.addForiegnGroups(newGroups);
-    }
+    // public void addForiegnGroups(GroupPack newGroups) {
+    //     groups.addForiegnGroups(newGroups);
+    // }
 
-    public GroupPack getGroups() {
-        return groups;
-    }
+    // public GroupPack getGroups() {
+    //     return groups;
+    // }
 
     public void markAsClosed() {
-        groups.markAsClosed();
+        // groups.markAsClosed();
+        isOpen=false;
     }
 
    
 
-    public Group hasGroup(Group group) {
-        return groups.contains(group);
-    }
+    // public Group hasGroup(Group group) {
+    //     return groups.contains(group);
+    // }
 
-    public boolean hasGoogleGroups() {
-        return groups.size()>0;
-    }
+    // public boolean hasGoogleGroups() {
+    //     return groups.size()>0;
+    // }
 }

@@ -5,7 +5,7 @@ import java.util.Map;
 
 import dev.Program.Backend.BusinessLayer.Server.ChromeWindowToSendSocket;
 import dev.Program.Backend.BusinessLayer.Server.TabToSendSocket;
-public class ChromeWindow extends Window {
+public class ChromeWindow {
     private int chromeId;
     private String windowId;
     private List<Tab> freeTabs;
