@@ -10,6 +10,12 @@ import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.W32APIOptions;
 
+import dev.Program.DTOs.Relax;
+import dev.Program.DTOs.Exceptions.UserException;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinUser;
+
 import java.util.*;
 
 public class ProcessController {
@@ -45,8 +51,8 @@ public class ProcessController {
                     ProcessObj processToAdd = new ProcessObj();
                     IntByReference processId = new IntByReference();
                     User32.INSTANCE.GetWindowThreadProcessId(hWnd, processId);
-                    System.out.println("--------------------");
-                    System.out.println(processId);
+                    // System.out.println("--------------------");
+                    // System.out.println(processId);
                     processToAdd.setId(processId);
                     WinNT.HANDLE processHandle = Kernel32.INSTANCE.OpenProcess(
                             Kernel32.PROCESS_QUERY_INFORMATION | Kernel32.PROCESS_VM_READ | Kernel32.PROCESS_TERMINATE,
@@ -54,24 +60,28 @@ public class ProcessController {
                     char[] exePath = new char[1024];
                     Psapi.INSTANCE.GetModuleFileNameExW(processHandle, null, exePath, exePath.length);
                     String windowTitle = Native.toString(exePath);
-                    System.out.println("Window Title: " + windowTitle);
+                    // System.out.println("Window Title: " + windowTitle);
                     // Convert the char array to a string and trim any extra spaces
                     String processName = Native.toString(exePath).trim();
                     processToAdd.setExePath(processName);
                     System.out.println("Open Window: " + wText + "\nWith process name:" + processName);
                     WinDef.RECT rect = new WinDef.RECT();
                     User32.INSTANCE.GetWindowRect(hWnd, rect);
-                    System.out.println(
-                            "Window position: (" + rect.left + ", " + rect.top + ")" + rect.toRectangle().getWidth());
-                    System.out.println("Window size: " + (rect.right - rect.left) + " x " + (rect.bottom - rect.top));
+                    // System.out.println(
+                    // "Window position: (" + rect.left + ", " + rect.top + ")" +
+                    // rect.toRectangle().getWidth());
+                    // System.out.println("Window size: " + (rect.right - rect.left) + " x " +
+                    // (rect.bottom - rect.top));
+                    processToAdd.setProcessTitle(wText);
                     // Close the process handle
 
-                    // if (!oneChomeIsClosed && getExeWindowName(processName).equals("chrome.exe")) {
-                    //     boolean res = Kernel32.INSTANCE.TerminateProcess(processHandle, 0);
-                    //     if (!res)
-                    //         System.out.println("faild");
-                    //     else
-                    //         oneChomeIsClosed = true;
+                    // if (!oneChomeIsClosed && getExeWindowName(processName).equals("chrome.exe"))
+                    // {
+                    // boolean res = Kernel32.INSTANCE.TerminateProcess(processHandle, 0);
+                    // if (!res)
+                    // System.out.println("faild");
+                    // else
+                    // oneChomeIsClosed = true;
                     // }
 
                     String exeName = getExeWindowName(processName);
@@ -103,20 +113,19 @@ public class ProcessController {
         return "";
     }
 
-    public static boolean isChromeOpened() {
+    public static boolean isChromeOpened(String chromeEngineName) {
         initProcesses();
         for (ProcessObj process : processes) {
-            // try{
-            if (getExeWindowName(process.getExePath()).equals("chrome.exe"))
-                return true;
-            // }catch(Exception e){
 
-            // }
+            if (getExeWindowName(process.getExePath()).equals("chrome.exe")
+                    || process.getExePath().endsWith("msedge.exe"))
+                return true;
+
         }
         return false;
     }
 
-    public static void runChrome() {
+    public static void runChrome() throws UserException {
         if (processHistory.containsKey("chrome.exe")) {
             // Specify the path to your .exe file
             String exePath = processHistory.get("chrome.exe");
@@ -127,15 +136,15 @@ public class ProcessController {
             try {
                 // Start the process
                 Process process = processBuilder.start();
-                Thread.currentThread().sleep(1000);
+                Relax.Relax(1000);
                 // Wait for the process to complete (optional)
                 // int exitCode = process.waitFor();
                 // System.out.println("Process exited with code: " + exitCode);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else{
-            throw new IllegalArgumentException("you have to run google");
+        } else {
+            throw new UserException("you have to run google");
         }
     }
 
@@ -157,10 +166,10 @@ public class ProcessController {
                 // System.out.println(process.pid());
                 // Thread.currentThread().sleep(seconds);
                 // if (process.isAlive()) {
-                //     process.destroy();
-                //     System.out.println("Process terminated.");
+                // process.destroy();
+                // System.out.println("Process terminated.");
                 // } else {
-                //     System.out.println("Process already finished.");
+                // System.out.println("Process already finished.");
                 // }
 
                 // process.destroy();
@@ -173,13 +182,68 @@ public class ProcessController {
 
     public static void main(String[] args) {
         initProcesses();
-        // try {
-        //     Thread.currentThread().sleep(10000);
-        // } catch (InterruptedException e) {
-        //     // TODO Auto-generated catch block
-        //     e.printStackTrace();
-        // }
-        // runChromeFor(5000);
-        // initProcesses();
+        // removeBlankApp("Word", "WINWORD.EXE");
+        // User32.INSTANCE.EnumWindows(new WinUser.WNDENUMPROC() {
+        //     @Override
+        //     public boolean callback(WinDef.HWND hwnd, Pointer arg1) {
+        //         char[] windowText = new char[512];
+        //         User32.INSTANCE.GetWindowText(hwnd, windowText, 512);
+        //         String wText = Native.toString(windowText);
+
+        //         // Filter by Adobe Reader or any PDF viewer
+        //         if (!wText.isEmpty()
+        //                 && (wText.contains(".pdf") || wText.contains("Adobe Reader") || wText.contains("Edge"))) {
+        //             System.out.println("Window title: " + wText);
+        //         }
+        //         return true;
+        //     }
+        // }, null);
     }
+
+    public static List<ProcessObj> getRunningProccesses() {
+        initProcesses();
+        return processes;
+    }
+
+    public static void removeBlankApp(String blankAppName, String exeName) {
+
+        User32.INSTANCE.EnumWindows(new User32.WNDENUMPROC() {
+            @Override
+            public boolean callback(WinDef.HWND hWnd, Pointer arg1) {
+
+                char[] windowText = new char[512];
+                User32.INSTANCE.GetWindowText(hWnd, windowText, 512);
+                String wText = Native.toString(windowText).trim();
+                int style = MyUser32.INSTANCE.GetWindowLong(hWnd, GWL_EXSTYLE);
+                boolean isToolWindow = (style & WS_EX_TOOLWINDOW) != 0;
+                if (!wText.isEmpty() && User32.INSTANCE.IsWindowVisible(hWnd) && !isToolWindow) {
+                    IntByReference processId = new IntByReference();
+                    User32.INSTANCE.GetWindowThreadProcessId(hWnd, processId);
+
+                    WinNT.HANDLE processHandle = Kernel32.INSTANCE.OpenProcess(
+                            Kernel32.PROCESS_QUERY_INFORMATION | Kernel32.PROCESS_VM_READ | Kernel32.PROCESS_TERMINATE,
+                            false, processId.getValue());
+                    char[] exePath = new char[1024];
+                    Psapi.INSTANCE.GetModuleFileNameExW(processHandle, null, exePath, exePath.length);
+                    String windowTitle = Native.toString(exePath);
+                    // Convert the char array to a string and trim any extra spaces
+                    String processName = Native.toString(exePath).trim();
+                    WinDef.RECT rect = new WinDef.RECT();
+                    User32.INSTANCE.GetWindowRect(hWnd, rect);
+                    // Close the process handle
+
+                    if (getExeWindowName(processName.toLowerCase()).equals(exeName.toLowerCase())
+                            && wText.equals(blankAppName)) {
+                        Kernel32.INSTANCE.TerminateProcess(processHandle, 0);
+
+                    }
+
+                    Kernel32.INSTANCE.CloseHandle(processHandle);
+                }
+                return true; // Continue enumeration
+            }
+        }, null);
+    }
+
+   
 }

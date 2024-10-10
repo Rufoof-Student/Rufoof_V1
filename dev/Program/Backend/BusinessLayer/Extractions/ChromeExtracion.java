@@ -13,9 +13,10 @@ import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.Group;
 import dev.Program.DTOs.GroupPack;
 import dev.Program.DTOs.Tab;
+import dev.Program.DTOs.Exceptions.UserException;
 import net.bytebuddy.implementation.bytecode.constant.IntegerConstant;
 
-import java.util.Scanner;
+import java.util.*;
 
 import org.openqa.selenium.support.Color;
 
@@ -24,14 +25,13 @@ public class ChromeExtracion {
     private ExtensionSocketServer server;
     private List<ChromeWindow> runningWindows;
     private int idCounter;
+    private String chromeEngineName ;
+    private Map<Integer,GroupPack> shelfId2Group;
 
-    public ChromeExtracion(ExtensionSocketServer server) {
+
+    public ChromeExtracion(ExtensionSocketServer server,String engineName) {
         this.server = server;
-        // runningWindows = server.getCurrentFreeTabs();
-        // for (ChromeWindow chromeWindow : runningWindows) {
-        // idCounter =
-        // idCounter<chromeWindow.getChromeId()?chromeWindow.getChromeId():idCounter;
-        // }
+        chromeEngineName = engineName;
     }
 
     /**
@@ -61,9 +61,10 @@ public class ChromeExtracion {
      * 
      * @param shelf the shelf whose groups will be opened.
      * @return the shelf with updated data, such as group IDs.
+     * @throws UserException 
      */
-    public Shelf runShelf(Shelf shelf) {
-        if(!insureConnection()){
+    public Shelf runShelf(Shelf shelf) throws UserException {
+        if(!insureConnection() && shelf.hasGoogleGroups()){
             ProcessController.runChrome();
         }
         GroupPack groupsToOpen = shelf.getGroups();
@@ -81,15 +82,22 @@ public class ChromeExtracion {
      * @param shelf          the shelf containing the groups and tabs.
      * @param groupsToUpdate the tabs to be added and/or closed.
      * @return the shelf with updated group and tab data.
+     * @throws UserException 
      */
-    public Shelf closeShelf(Shelf shelf, List<Group> groupsToUpdate) {
+    public Shelf closeShelf(Shelf shelf, List<Group> groupsToUpdate) throws UserException {
+        System.out.println("we have to update and close the shelf");
+
         updateShelfTabsURLs(shelf);
+        System.out.println("shelf has been updated!");
         dealWithGroups(shelf, groupsToUpdate);
+
+        System.out.println("done dealing with groups");
         if (insureConnection()) {
             server.closeAllGroups(shelf.getGroups().getList());
         }
-        // shelf.markAsClosed();
+        System.out.println("we have to filter empty tabs");
         server.filterEmptyTabs();
+        System.out.println("all tabs must be closed");
         return shelf;
 
     }
@@ -131,8 +139,9 @@ public class ChromeExtracion {
      * Returns all tabs that are not assigned to any group.
      * 
      * @return a list of ungrouped (free) tabs.
+     * @throws UserException 
      */
-    public List<Group> getFreeTabs() {
+    public List<Group> getFreeTabs() throws UserException {
         if (!insureConnection()) {
             System.out.println("empty list must be returned");
             return new ArrayList<>();
@@ -144,8 +153,8 @@ public class ChromeExtracion {
 
     }
 
-    private boolean insureConnection() {
-        boolean chromeIsOpened = ProcessController.isChromeOpened();
+    private boolean insureConnection() throws UserException {
+        boolean chromeIsOpened = ProcessController.isChromeOpened(chromeEngineName);
         boolean extensionConnected = server.connectionIsOpenedWithGoogle();
         if (chromeIsOpened && !extensionConnected) {
             ProcessController.runChrome();
@@ -161,7 +170,7 @@ public class ChromeExtracion {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UserException {
 
         ExtensionSocketServer s = new ExtensionSocketServer(8887);
         s.start();
@@ -170,7 +179,7 @@ public class ChromeExtracion {
         int idCounter = 0;
         Colors[] colors = new Colors[] { Colors.BLUE, Colors.CYAN, Colors.ORANGE, Colors.RED };
         Shelf shelf = null;
-        ChromeExtracion c = new ChromeExtracion(s);
+        ChromeExtracion c = new ChromeExtracion(s,"");
         while (true) {
             System.out.println(
                     "Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New Groups\n3. Close Shelf\n4. open shelf\n5.create new Shelf\n6.move to shelf \n7.Exit");

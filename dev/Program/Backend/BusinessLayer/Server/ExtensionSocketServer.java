@@ -27,46 +27,63 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ExtensionSocketServer extends WebSocketServer {
 
-    private List<ChromeWindow> googleWindows;
+    private ConcurrentLinkedQueue<ChromeWindow> googleWindows;
     private Thread workerThread;
     private List<WebSocket> conns;
     private Gson gson = new Gson();
     private JsonParser jsonParser = new JsonParser();
     private Object lock = new Object();
-    // private boolean isRecollection = false;
-    // private boolean isOpenProccess;
+    // private WebSocket edge ;
+    // private WebSocket chrome;
 
+    
     // =====
     private ConcurrentLinkedQueue<Answer> responses = new ConcurrentLinkedQueue<>();
+    
+    
+    // private Thread engineNameGetter;
+    // private Runnable getEngineName = ()->{
+    //     synchronized(lock){
+    //         while(responses.size()==0)
+    //             try {
+    //                 engineNameGetter.wait();
+    //             } catch (InterruptedException e) {
+    //                 // TODO Auto-generated catch block
+    //                 e.printStackTrace();
+    //             }
+    //         Answer res= responses.remove();
+    //         if(res.type.equals("engineName")){
+    //             if(res.data.equals("chrome.exe")){
+    //                 chrome = conns.remove();
+    //             }else{
+    //                 edge = conns.remove();
+    //             }
+    //         }
+
+    //     }
+    // };
 
     public ExtensionSocketServer(int port) {
         super(new InetSocketAddress(port));
         workerThread = new Thread();
-        googleWindows = new ArrayList<>();
+        googleWindows = new ConcurrentLinkedQueue<>();
         conns = new ArrayList<>();
     }
 
-    /**
-     * Get the opened google windows ,without refreshing.
-     * 
-     * @return List<CromeWindow> for the opened windows.
-     */
-    public List<ChromeWindow> getLastUpdateGoogleOpenedWindows() {
-        synchronized (lock) {
-            return googleWindows;
-        }
-    }
-
+ 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         conns.add(conn);
+        conn.send("Welcome!");
+        
     }
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         synchronized (lock) {
+            // if(edge.equals(conn))edge=null;
+            // else chrome = null;
             conns.remove(conn);
-            lock.notifyAll();
         }
     }
 
@@ -79,7 +96,7 @@ public class ExtensionSocketServer extends WebSocketServer {
             Map<String, Object> msgMap = gson.fromJson(message, Map.class);
             if (msgMap.get("tag").equals("Question")) {
                 Question question = new Question((String) msgMap.get("type"), (String) msgMap.get("data"));
-                dealWithQuestion(question);
+                // dealWithQuestion(question);
             } else if (msgMap.get("tag").equals("Answer")) {
                 Answer answer = new Answer((String) msgMap.get("type"), (String) msgMap.get("data"));
                 synchronized (lock) {
@@ -95,7 +112,7 @@ public class ExtensionSocketServer extends WebSocketServer {
 
     private void refillWindowsFromJSON(String JSONdata) {
         // synchronized (lock) {
-        googleWindows = new ArrayList<>();
+        googleWindows = new ConcurrentLinkedQueue<>();
         JsonArray data = jsonParser.parse(JSONdata).getAsJsonArray();
         for (JsonElement windowJsonElement : data) {
             JsonObject windowJsonObject = windowJsonElement.getAsJsonObject();
@@ -104,11 +121,7 @@ public class ExtensionSocketServer extends WebSocketServer {
 
     }
 
-    private void dealWithQuestion(Question question) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'dealWithQuestion'");
-    }
-
+  
     @Override
     public void onError(WebSocket conn, Exception ex) {
         System.out.println(ex.getMessage());
@@ -301,6 +314,7 @@ public class ExtensionSocketServer extends WebSocketServer {
     }
 
     public GroupPack createGroups(List<Group> groups) {
+        if(groups.size()==0) return new GroupPack();
         Group[] groupsAsArray = new Group[groups.size()];
         Map<String, Group> dicGroup = new ConcurrentHashMap<>();
         for (int i = 0; i < groups.size(); i++) {
