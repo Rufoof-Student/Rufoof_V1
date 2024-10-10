@@ -77,4 +77,8 @@ public class Shelf {
     public Group hasGroup(Group group) {
         return groups.contains(group);
     }
+
+    public boolean hasGoogleGroups() {
+        return groups.size()>0;
+    }
 }

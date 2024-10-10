@@ -33,7 +33,7 @@ export async function getGeneratedIdForWindow(windowId, chrome) {
     async (chromeIdDict) => {
       console.log("joining the get genereated id");
       //   return await new Promise(async (resolve) => {
-      if (chromeIdDict === null) {
+      if (chromeIdDict === null || chromeIdDict===undefined) {
         return -1;
       }
       console.log(chromeIdDict);
