@@ -10,7 +10,7 @@ import com.google.gson.JsonParser;
 
 import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
 
-public class Group {
+public class Group extends Window{
     private List<Tab> tabs;
     private String nativeWindowId;
     private int chromeId;
@@ -21,7 +21,8 @@ public class Group {
 
     private String groupId;
 
-    private Group(String nativeWindowId2, int chromeGeneratedId, List<Tab> tabs2) {
+    private Group(String nativeWindowId2, int chromeGeneratedId, List<Tab> tabs2,String a) {
+        super(a);
         nativeWindowId = nativeWindowId2;
         chromeId = chromeGeneratedId;
         tabs = tabs2;
@@ -33,7 +34,7 @@ public class Group {
         return parsedData.getAsJsonArray();
     }
 
-    public static List<Group> createGroupFromFreeTabsAnswerJSON(String data) {
+    public static List<Group> createGroupFromFreeTabsAnswerJSON(String data,String engineName) {
         JsonArray arrayOfWindows = Group.parseArrayData(data);
         List<Group> groupToReturn = new ArrayList<>();
         for (JsonElement windowJson : arrayOfWindows) {
@@ -42,7 +43,8 @@ public class Group {
             int chromeGeneratedId = window.get("chromeId").getAsInt();
             JsonArray tabsAsJsonArray = window.get("tabs").getAsJsonArray();
             List<Tab> tabs = Tab.createTabsFromJsonArray(tabsAsJsonArray, nativeWindowId);
-            Group groupToAdd = new Group(nativeWindowId, chromeGeneratedId, tabs).filter();
+            String appName = engineName.equals("chrome.exe")?"Chrome":"Edge";
+            Group groupToAdd = new Group(nativeWindowId, chromeGeneratedId, tabs,appName).filter();
             if(groupToAdd!=null) groupToReturn.add(groupToAdd);
         }
         return groupToReturn;
@@ -56,7 +58,7 @@ public class Group {
      *             int , ...] , nativeWindowId : String | int , groupId : String |
      *             int ,... }
      */
-    public static List<Group> getAllGroupsAsOpened(String data,Shelf shelfForGroups) {
+    public static List<Group> getAllGroupsAsOpened(String data,Shelf shelfForGroups,String engineName) {
         JsonArray arrayOfWindows = Group.parseArrayData(data);
         List<Group> groupToReturn = new ArrayList<>();
         for (JsonElement windowJson : arrayOfWindows) {
@@ -65,7 +67,9 @@ public class Group {
             int chromeGeneratedId = window.get("chromeId").getAsInt();
             JsonArray tabsAsJsonArray = window.get("tabs").getAsJsonArray();
             List<Tab> tabs = Tab.createTabsFromJsonArray(tabsAsJsonArray, nativeWindowId);
-            Group g = (new Group(nativeWindowId, chromeGeneratedId, tabs));
+            String appName = engineName.equals("chrome.exe")?"Chrome":"Edge";
+
+            Group g = (new Group(nativeWindowId, chromeGeneratedId, tabs,appName));
             g.setShelfProperties(shelfForGroups);
             g.setGroupId(window.get("groupId").getAsString());
 

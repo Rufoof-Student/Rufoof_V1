@@ -23,6 +23,7 @@ import dev.Program.DTOs.Exceptions.UserException;
 public class AdobeApp extends MicroApp {
 
     public AdobeApp() {
+        super("Adobe Acrobat Reader (64-bit)");
         appName = "AcroExch.App";
         fileFormat = ".pdf";
         blankAppName="Adobe Acrobat Reader (64-bit)";

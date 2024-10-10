@@ -1,6 +1,9 @@
 package dev.Program.DTOs;
 
-public abstract class Window {
-    protected String exeUrl;
-    
+public class Window {
+    public String appName ;
+
+    public Window(String appName){
+        this.appName=appName;
+    }
 }

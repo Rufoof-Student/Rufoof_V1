@@ -13,9 +13,14 @@ import java.nio.file.Files;
 
 import dev.Program.Backend.BusinessLayer.Process.ProcessController;
 import dev.Program.Backend.BusinessLayer.Process.ProcessObj;
+import dev.Program.DTOs.Window;
 import dev.Program.DTOs.Exceptions.UserException;
 
-public abstract class MicroApp {
+public abstract class MicroApp extends Window{
+
+    public MicroApp(String appName) {
+        super(appName);
+    }
 
     protected String fileFormat;
 

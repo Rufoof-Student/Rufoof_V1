@@ -75,7 +75,7 @@ const connectToServer = () => {
 
     socket.onclose = function (event) {
       console.log("WebSocket closed: " + event.code);
-      stopAndPrintTimer();
+      // stopAndPrintTimer();
     };
 
     socket.onerror = function (error) {

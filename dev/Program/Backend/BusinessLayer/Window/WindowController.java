@@ -22,6 +22,8 @@ public class WindowController {
         extEdg = new ChromeExtracion(socket, "msedge.exe",shelfs);
     }
 
+    
+
     public Shelf addGroupsToShelf(Shelf toCreate, List<Group> tabsToInclude,String chromeEngineName) {
         for (Group group : tabsToInclude) {
             group.setShelfProperties(toCreate);
@@ -33,7 +35,7 @@ public class WindowController {
     
     public List<Group> getFreeTabs(String engineName) throws UserException{
         ChromeExtracion ext = getExt(engineName);
-        return extChrome.getFreeTabs();
+        return ext.getFreeTabs();
     }
 
     private ChromeExtracion getExt(String engineName) {

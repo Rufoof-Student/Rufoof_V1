@@ -99,8 +99,11 @@ public class ChromeExtracion {
         dealWithGroups(shelf, groupsToUpdate);
 
         System.out.println("done dealing with groups");
-        if (insureConnection()) {
-            server.closeAllGroups(shelf.getGroups().getList(),chromeEngineName);
+        if (insureConnection() && shelfId2Group.containsKey(shelf.getId())) {
+            
+
+            server.closeAllGroups(shelfId2Group.get(shelf.getId()).getList(),chromeEngineName);
+            shelfId2Group.get(shelf.getId()).markAsClosed();
         }
         System.out.println("we have to filter empty tabs");
         server.filterEmptyTabs(chromeEngineName);
@@ -126,7 +129,7 @@ public class ChromeExtracion {
         List<Group> groupsToCreate = new ArrayList<>();
         for (Group groupToAdd : groupsToUpdate) {
             Group currGroup;
-            if ((currGroup = shelf.hasGroup(groupToAdd)) != null) {
+            if (shelfId2Group.containsKey(shelf.getId())&& (currGroup = shelfId2Group.get(shelf.getId()).contains(groupToAdd)) != null) {
                 currGroup.addTabs(groupToAdd.getTabs());
             } else {
                 groupToAdd.setShelfProperties(shelf);
@@ -156,6 +159,7 @@ public class ChromeExtracion {
         }
 
         List<Group> toRet =server.getCurrentFreeTabs(chromeEngineName);
+        System.out.println(toRet==null);
         server.filterEmptyTabs(chromeEngineName);
         return toRet;
 
@@ -163,7 +167,7 @@ public class ChromeExtracion {
 
     private boolean insureConnection() throws UserException {
         boolean chromeIsOpened = ProcessController.isChromeOpened(chromeEngineName);
-        boolean extensionConnected = server.connectionIsOpenedWithGoogle();
+        boolean extensionConnected = server.connectionIsOpenedWithGoogle(chromeEngineName);
         if (chromeIsOpened && !extensionConnected) {
             ProcessController.runChrome(chromeEngineName);
 

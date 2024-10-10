@@ -33,30 +33,11 @@ public class ExtensionSocketServer extends WebSocketServer {
     private Gson gson = new Gson();
     private JsonParser jsonParser = new JsonParser();
     private Object lock = new Object();
-    private WebSocket edge ;
+    private WebSocket edge;
     private WebSocket chrome;
 
-    
     // =====
     private ConcurrentLinkedQueue<Answer> responses = new ConcurrentLinkedQueue<>();
-    
-    
-    private Thread engineNameGetter;
-    private Runnable getEngineName = ()->{
-        // synchronized(lock){
-            while(responses.size()==0);
-            Answer res= responses.remove();
-            if(res.type.equals("engineName")){
-                if(res.data.equals("chrome.exe")){
-                    chrome = conns.remove();
-                    System.out.println("chrome has been initilaized ");
-                }else{
-                    edge = conns.remove();
-                }
-            }
-
-        // }
-    };
 
     public ExtensionSocketServer(int port) {
         super(new InetSocketAddress(port));
@@ -65,20 +46,19 @@ public class ExtensionSocketServer extends WebSocketServer {
         conns = new ConcurrentLinkedQueue<>();
     }
 
- 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         conns.add(conn);
-        conn.send("Welcome!");
-        new Thread(getEngineName).run();
-        // engineNameGetter;
+
     }
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         synchronized (lock) {
-            if(edge.equals(conn))edge=null;
-            else chrome = null;
+            if (edge.equals(conn))
+                edge = null;
+            else
+                chrome = null;
             // conns.remove(conn);
         }
     }
@@ -96,7 +76,17 @@ public class ExtensionSocketServer extends WebSocketServer {
             } else if (msgMap.get("tag").equals("Answer")) {
                 Answer answer = new Answer((String) msgMap.get("type"), (String) msgMap.get("data"));
                 synchronized (lock) {
-                    responses.add(answer);
+                    if (answer.type.equals("engineName")) {
+                        // responses.remove();
+                        if (answer.data.equals("chrome.exe")) {
+                            chrome = conns.remove();
+                            System.out.println("chrome has been initilaized ");
+                        } else {
+                            edge = conns.remove();
+                            System.out.println("edge has been initilaized ");
+                        }
+                    } else
+                        responses.add(answer);
                     lock.notifyAll();
                 }
             }
@@ -106,18 +96,6 @@ public class ExtensionSocketServer extends WebSocketServer {
         }
     }
 
-    private void refillWindowsFromJSON(String JSONdata) {
-        // synchronized (lock) {
-        googleWindows = new ConcurrentLinkedQueue<>();
-        JsonArray data = jsonParser.parse(JSONdata).getAsJsonArray();
-        for (JsonElement windowJsonElement : data) {
-            JsonObject windowJsonObject = windowJsonElement.getAsJsonObject();
-            googleWindows.add(new ChromeWindow(convertFromJsonToWindow(windowJsonObject), true));
-        }
-
-    }
-
-  
     @Override
     public void onError(WebSocket conn, Exception ex) {
         System.out.println(ex.getMessage());
@@ -138,12 +116,12 @@ public class ExtensionSocketServer extends WebSocketServer {
      *         something went wrong.
      */
     public List<Group> getCurrentFreeTabs(String engineName) {
-        WebSocket conn =getConn(engineName);
-        if (conn==null) {
+        WebSocket conn = getConn(engineName);
+        if (conn == null) {
             System.out.println("there is no connections in the server");
             return null;
         }
-        
+
         try {
             Question question = new Question("getWindows");
             String toSend = gson.toJson(question);
@@ -159,7 +137,7 @@ public class ExtensionSocketServer extends WebSocketServer {
                     System.out.println("Windows not recived!");
                     return null;
                 }
-                return Group.createGroupFromFreeTabsAnswerJSON(res.data);
+                return Group.createGroupFromFreeTabsAnswerJSON(res.data,engineName);
             }
 
         } catch (Exception ex) {
@@ -170,153 +148,16 @@ public class ExtensionSocketServer extends WebSocketServer {
     }
 
     private WebSocket getConn(String engineName) {
-        return engineName.equals("chrome.exe")?chrome:edge;
+        return engineName.equals("chrome.exe") ? chrome : edge;
     }
 
-
-    public static void main(String[] args) {
-        // ExtensionSocketServer s = new ExtensionSocketServer(8887);
-        // s.start();
-        // Scanner sc = new Scanner(System.in);
-        // while (true) {
-
-        //     switch (sc.nextLine()) {
-        //         case "1":
-
-        //             List<Group> a = s.getCurrentFreeTabs();
-
-        //             for (Group chromeWindow : a) {
-
-        //                 System.out.println(chromeWindow);
-        //             }
-        //             break;
-        //         case "2":
-        //             List<Tab> tabs = new ArrayList<>();
-        //             tabs.add(new Tab("https://mail.google.com/mail/u/0/#inbox",
-        //                     "Inbox (1,201) - bhaa.hillou@gmail.com - Gmail"));
-        //             ChromeWindow windows;
-        //             windows = new ChromeWindow(sc.nextLine(), tabs, false);
-
-        //             ChromeWindowToSendSocket b = s.openGroub(windows);
-
-        //             // for (ChromeWindow chromeWindow : b) {
-
-        //             // System.out.println(chromeWindow);
-        //             // }
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        // }
+    public boolean connectionIsOpenedWithGoogle(String engineName) {
+        return engineName.equals("chrome.exe") ? chrome != null : edge != null;
     }
 
-    // /**
-    //  * Open the given windows on the desktop. current thread will wait untill
-    //  * process finished.
-    //  * 
-    //  * @param windowsToOpen is the list of windows that will open.
-    //  * @return the list of new opened tabs.
-    //  */
-    // public ChromeWindowToSendSocket openGroub(ChromeWindow windowToOpen) {
-    //     if (conns.size() == 0) {
-    //         return null;
-    //     }
-    //     WebSocket conn = conns.get(0);
-    //     String jsonData = getWindowsToSendAsJson(windowToOpen);
-    //     Question question = new Question("openWindows", jsonData);
-    //     synchronized (lock) {
-    //         // isOpenProccess = true;
-    //         conn.send(gson.toJson(question));
-    //         try {
-    //             while (responses.size() == 0)
-    //                 lock.wait();
-    //         } catch (InterruptedException e) {
-    //             e.printStackTrace();
-    //         }
-
-    //         Answer res = responses.remove();
-    //         if (!res.type.equals("OpenProcessIsFinished"))
-    //             return null;
-    //         System.out.println(res.data);
-    //         return getChromeFromJson(res.data);
-    //         // return null;
-    //     }
-    //     // googleWindows = getCurrentGoogleOpenedWindows();
-    // }
-
-    private ChromeWindowToSendSocket getChromeFromJson(String data) {
-
-        JsonObject windowJsonObject = jsonParser.parse(data).getAsJsonObject();
-        return convertFromJsonToWindow(windowJsonObject);
-    }
-
-    private ChromeWindowToSendSocket convertFromJsonToWindow(JsonObject windowJsonObject) {
-        String id = windowJsonObject.get("id").getAsString();
-        JsonArray tabsJsonArray = windowJsonObject.get("tabs").getAsJsonArray();
-        TabToSendSocket[] tabs = new TabToSendSocket[tabsJsonArray.size()];
-        int counter = 0;
-        for (JsonElement tabJsonElement : tabsJsonArray) {
-            JsonObject tabJsonObject = tabJsonElement.getAsJsonObject();
-            TabToSendSocket tabToAdd = new TabToSendSocket(tabJsonObject.get("url").getAsString(),
-                    tabJsonObject.get("title").getAsString(), tabJsonObject.get("id").getAsString());
-            tabs[counter] = (tabToAdd);
-            counter++;
-        }
-        return new ChromeWindowToSendSocket(id, tabs);
-    }
-
-    private String getWindowsToSendAsJson(ChromeWindow windowToOpen) {
-
-        List<Tab> tabs = windowToOpen.getFreeTabs();
-        TabToSendSocket[] tabsToSend = new TabToSendSocket[tabs.size()];
-        for (int j = 0; j < tabsToSend.length; j++) {
-            tabsToSend[j] = new TabToSendSocket(tabs.get(j).getUrl(), tabs.get(j).getTitle(),
-                    tabs.get(j).getNativeTabId());
-        }
-        ChromeWindowToSendSocket windowsToSend = new ChromeWindowToSendSocket(windowToOpen.getId(), tabsToSend);
-
-        return gson.toJson(windowsToSend);
-    }
-
-    public boolean connectionIsOpenedWithGoogle() {
-        return conns.size() != 0;
-    }
-
-    // public ChromeWindow closeAllTabs(ChromeWindow window) {
-
-    //     List<Tab> tabsToClose = window.getFreeTabs();
-    //     String[] ids = new String[tabsToClose.size()];
-    //     for (int i = 0; i < ids.length; i++) {
-    //         ids[i] = tabsToClose.get(i).getNativeTabId();
-    //     }
-    //     String dataToSend = gson.toJson(ids);
-    //     Question qes = new Question("Close", dataToSend);
-    //     String qesToSend = gson.toJson(qes);
-    //     synchronized (lock) {
-    //         if (conns.size() == 0)
-    //             return null;
-    //         WebSocket con = conns.get(0);
-    //         con.send(qesToSend);
-    //         try {
-    //             lock.wait();
-    //         } catch (InterruptedException e) {
-    //             // TODO Auto-generated catch block
-    //             e.printStackTrace();
-    //         }
-    //         Answer res = responses.remove();
-    //         if (!res.type.equals("closed"))
-    //             return null;
-    //         JsonElement data = jsonParser.parse(res.data);
-    //         if (data.getAsBoolean()) {
-    //             window.markAsClosed();
-    //         }
-    //         window.markTabsAsClosed();
-    //         return window;
-    //     }
-    // }
-
-    public GroupPack createGroups(List<Group> groups,String engineName) {
-        if(groups.size()==0) return new GroupPack();
+    public GroupPack createGroups(List<Group> groups, String engineName) {
+        if (groups.size() == 0)
+            return new GroupPack();
         Group[] groupsAsArray = new Group[groups.size()];
         Map<String, Group> dicGroup = new ConcurrentHashMap<>();
         for (int i = 0; i < groups.size(); i++) {
@@ -324,7 +165,7 @@ public class ExtensionSocketServer extends WebSocketServer {
             dicGroup.put(groups.get(i).getNativeWindowId(), groups.get(i));
         }
         synchronized (lock) {
-            Answer answer = sendAndReciveQeustion("createNewGroups", gson.toJson(groupsAsArray), "done",engineName);
+            Answer answer = sendAndReciveQeustion("createNewGroups", gson.toJson(groupsAsArray), "done", engineName);
             JsonArray jsonGroupArray = jsonParser.parse(answer.data).getAsJsonArray();
             List<Group> toRet = new ArrayList<>();
             for (JsonElement jsonElement : jsonGroupArray) {
@@ -345,10 +186,10 @@ public class ExtensionSocketServer extends WebSocketServer {
         return groupsAsArray;
     }
 
-    public List<Group> closeAllGroups(List<Group> groupsToClose,String engineName) {
+    public List<Group> closeAllGroups(List<Group> groupsToClose, String engineName) {
         Group[] groupsAsArray = getGroupAsArray(groupsToClose);
         synchronized (lock) {
-            Answer answer = sendAndReciveQeustion("closeAllGroups", gson.toJson(groupsAsArray), "closed",engineName);
+            Answer answer = sendAndReciveQeustion("closeAllGroups", gson.toJson(groupsAsArray), "closed", engineName);
             JsonArray jsonGroupArray = jsonParser.parse(answer.data).getAsJsonArray();
             for (JsonElement jsonElement : jsonGroupArray) {
                 String windowId = jsonElement.getAsJsonObject().get("nativeWindowId").getAsString();
@@ -363,47 +204,47 @@ public class ExtensionSocketServer extends WebSocketServer {
         }
     }
 
-    private Answer sendAndReciveQeustion(String type, String data, String resType,String engineName) {
-        
-        
+    private Answer sendAndReciveQeustion(String type, String data, String resType, String engineName) {
+
         System.out.println("data sent to client :" + data);
-        WebSocket con = engineName.equals("chrome.exe")?chrome:edge;
-        if (con==null)
+        WebSocket con = engineName.equals("chrome.exe") ? chrome : edge;
+        if (con == null)
             return null;
         Question question = new Question(type, data);
         con.send(gson.toJson(question));
-        try {
-            lock.wait();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        while (responses.size() == 0)
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         Answer answer = responses.remove();
         if (!answer.type.equals(resType))
             return null;
         return answer;
     }
 
-    public List<Group> runAllGroups(List<Group> groupsToOpen, Shelf shelf,String engineName) {
+    public List<Group> runAllGroups(List<Group> groupsToOpen, Shelf shelf, String engineName) {
         Group[] groupsToSend = getGroupAsArray(groupsToOpen);
         synchronized (lock) {
-            Answer answer = sendAndReciveQeustion("runGroubs", gson.toJson(groupsToSend), "running",engineName);
-            return Group.getAllGroupsAsOpened(answer.data, shelf);
+            Answer answer = sendAndReciveQeustion("runGroubs", gson.toJson(groupsToSend), "running", engineName);
+            return Group.getAllGroupsAsOpened(answer.data, shelf,engineName);
         }
     }
 
-    public String getUpdatedDataForTabAsJSON(String id,String engineName) {
+    public String getUpdatedDataForTabAsJSON(String id, String engineName) {
         // String data = "{\"nativeTabId\":\""+id+"\"}";
         JsonObject data = new JsonObject();
         data.addProperty("nativeTabId", id);
         synchronized (lock) {
-            Answer answer = sendAndReciveQeustion("getUrlFor", data.toString(), "url",engineName);
+            Answer answer = sendAndReciveQeustion("getUrlFor", data.toString(), "url", engineName);
             return answer.data;
         }
     }
 
-    public void filterEmptyTabs(String engineName){
-        synchronized(lock){
-            sendAndReciveQeustion("filter", "{}", "filtered",engineName);
+    public void filterEmptyTabs(String engineName) {
+        synchronized (lock) {
+            sendAndReciveQeustion("filter", "{}", "filtered", engineName);
         }
     }
 

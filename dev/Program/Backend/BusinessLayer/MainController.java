@@ -1,7 +1,7 @@
 package dev.Program.Backend.BusinessLayer;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.Scanner;
 
 import org.checkerframework.checker.units.qual.m;
@@ -13,6 +13,7 @@ import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
 import dev.Program.Backend.BusinessLayer.Shelf.ShelfController;
 import dev.Program.Backend.BusinessLayer.Window.WindowController;
 import dev.Program.DTOs.Colors;
+import dev.Program.DTOs.FreeWindowsToSend;
 import dev.Program.DTOs.Group;
 import dev.Program.DTOs.Relax;
 import dev.Program.DTOs.Tab;
@@ -26,6 +27,9 @@ public class MainController {
     private WindowController windowController;
     private MicroAppController microAppsController;
 
+    private static final String chromeName = "chrome.exe";
+    private static final String edgeName = "msedge.exe";
+
     public MainController() {
         shelfcController = new ShelfController();
         windowController = new WindowController(shelfcController.getAllShelfsAsList());
@@ -35,21 +39,36 @@ public class MainController {
         ProcessController.initProcesses();
     }
 
-    public List<Group> getFreeOpenedTabsAsGroups(String engineName) throws UserException {
-        return windowController.getFreeTabs(engineName);
+    public FreeWindowsToSend getFreeWindows() throws UserException{
+        FreeWindowsToSend toRet = new FreeWindowsToSend(); 
+        toRet.chromeGroups = getFreeOpenedTabsAsGroupsForChrome();
+        toRet.edgeGroups = getFreeOpenedTabsAsGroupsForEdge();
+        toRet.microsoftApps = getFreeOpenedMicroApps();
+        return toRet;
     }
 
-    public List<MicroApp> getFreeOpenedMicroApps() {
+    private List<Group> getFreeOpenedTabsAsGroupsForChrome() throws UserException {
+        return windowController.getFreeTabs(chromeName);
+    }
+
+    private List<Group> getFreeOpenedTabsAsGroupsForEdge() throws UserException {
+        return windowController.getFreeTabs(edgeName);
+    }
+
+    private List<MicroApp> getFreeOpenedMicroApps() {
         return microAppsController.extractFreeRunningMicroApps();
     }
 
-    public Shelf createNewShelf(String name, Colors color, List<MicroApp> windowsToInclude, List<Group> tabsToInclude,String engineName)
+    public Shelf createNewShelf(String name, Colors color, FreeWindowsToSend freeWindowsToSend)
             throws DeveloperException {
         Shelf toCreate = shelfcController.getNewShelf(name, color);
-        toCreate = windowController.addGroupsToShelf(toCreate, tabsToInclude,engineName);
+        toCreate = windowController.addGroupsToShelf(toCreate, freeWindowsToSend.chromeGroups,chromeName);
+        Relax.Relax(100);
+        toCreate = windowController.addGroupsToShelf(toCreate, freeWindowsToSend.edgeGroups, edgeName);
+                
         // =====================
         microAppsController.createShelf(toCreate.getId());
-        microAppsController.addMicroAppToUsedList(windowsToInclude, toCreate.getId());
+        microAppsController.addMicroAppToUsedList(freeWindowsToSend.microsoftApps, toCreate.getId());
 
         shelfcController.saveShelf(toCreate);
         return toCreate;
@@ -59,19 +78,24 @@ public class MainController {
         return shelfcController.getAllShelfsAsList();
     }
 
-    public Shelf closeShelf(Shelf s, List<Group> groups, List<MicroApp> appsToAdd,String engineName)
+    public Shelf closeShelf(Shelf s, FreeWindowsToSend free)
             throws UserException, DeveloperException {
                 System.out.println("start closing the shelf!");
-        microAppsController.closeShelfsApps(s.getId(), appsToAdd);
+        microAppsController.closeShelfsApps(s.getId(), free.microsoftApps);
         Relax.Relax(500);
-        windowController.closeShelf(s, groups,engineName);
+        windowController.closeShelf(s, free.chromeGroups,chromeName);
+        Relax.Relax(300);
+        windowController.closeShelf(s, free.edgeGroups, edgeName);
         s.markAsClosed();
         return s;
     }
 
 
-    public void openShelf(Shelf s,String engineName) throws UserException, DeveloperException {
-        Shelf toUpdate = windowController.openShelf(s,engineName);
+    public void openShelf(Shelf s) throws UserException, DeveloperException {
+        windowController.openShelf(s,chromeName);
+        Relax.Relax(300);
+        windowController.openShelf(s, edgeName);
+        Relax.Relax(100);
         microAppsController.openAppsForShelf(s.getId());
 
     }

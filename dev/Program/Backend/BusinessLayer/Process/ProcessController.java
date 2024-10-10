@@ -147,38 +147,7 @@ public class ProcessController {
         }
     }
 
-    public static void runChromeFor(long seconds) {
-        // initProcesses();
-        if (processHistory.containsKey("chrome.exe")) {
-            // Specify the path to your .exe file
-            String exePath = processHistory.get("chrome.exe");
-
-            // Create the process builder
-            ProcessBuilder processBuilder = new ProcessBuilder(exePath);
-
-            try {
-                // Start the process
-                Process process = processBuilder.start();
-
-                // Wait for the process to complete (optional)
-                // int exitCode = process.waitFor();
-                // System.out.println(process.pid());
-                // Thread.currentThread().sleep(seconds);
-                // if (process.isAlive()) {
-                // process.destroy();
-                // System.out.println("Process terminated.");
-                // } else {
-                // System.out.println("Process already finished.");
-                // }
-
-                // process.destroy();
-                System.out.println("Process exited with code: ");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
+   
     public static void main(String[] args) {
         initProcesses();
         // removeBlankApp("Word", "WINWORD.EXE");
