@@ -92,6 +92,11 @@ public class ChromeExtracion {
      * @throws UserException 
      */
     public Shelf closeShelf(Shelf shelf, List<Group> groupsToUpdate) throws UserException {
+
+
+        if(shelfId2Group.get(shelf.getId())==null||shelfId2Group.get(shelf.getId()).getList().size()==0)
+            return shelf;
+
         System.out.println("we have to update and close the shelf");
 
         updateShelfTabsURLs(shelf.getId());
