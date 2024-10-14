@@ -157,7 +157,9 @@ public class ExtensionSocketServer extends WebSocketServer {
         return engineName.equals("chrome.exe") ? chrome != null : edge != null;
     }
 
-    public GroupPack createGroups(List<Group> groups, String engineName) throws DeveloperException {
+
+    public GroupPack createGroups(List<Group> groups, String engineName) {
+
         if (groups.size() == 0)
             return new GroupPack();
         Group[] groupsAsArray = new Group[groups.size()];
@@ -188,7 +190,9 @@ public class ExtensionSocketServer extends WebSocketServer {
         return groupsAsArray;
     }
 
-    public List<Group> closeAllGroups(List<Group> groupsToClose, String engineName) throws DeveloperException {
+
+    public List<Group> closeAllGroups(List<Group> groupsToClose, String engineName) {
+
         Group[] groupsAsArray = getGroupAsArray(groupsToClose);
         synchronized (lock) {
             Answer answer = sendAndReciveQeustion("closeAllGroups", gson.toJson(groupsAsArray), "closed", engineName);
@@ -206,22 +210,18 @@ public class ExtensionSocketServer extends WebSocketServer {
         }
     }
 
-    private Answer sendAndReciveQeustion(String type, String data, String resType, String engineName) throws DeveloperException {
+
+    private Answer sendAndReciveQeustion(String type, String data, String resType, String engineName) {
+
 
         System.out.println("data sent to client :" + data);
         WebSocket con = engineName.equals("chrome.exe") ? chrome : edge;
         if (con == null)
             throw new DeveloperException("There is no connection with requested engine :"+engineName+". chrome is null?"+(chrome==null)+" . eedge is null?"+(edge==null));
         Question question = new Question(type, data);
-        // try{
-            con.send(gson.toJson(question));
-        // }catch(WebsocketNotConnectedException ex){
-        //     if (engineName.equals("chrome.exe")) {
-        //         chrome=null;
-        //     }else{
-        //         edge=null;
-        //     }
-        // }
+       
+        con.send(gson.toJson(question));
+
         while (responses.size() == 0)
             try {
                 lock.wait();

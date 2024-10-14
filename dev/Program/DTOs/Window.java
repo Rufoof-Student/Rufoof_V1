@@ -7,6 +7,7 @@ public class Window {
         this.appName=appName;
     }
 
+
     public String getName(){
         return appName;
     }
@@ -15,4 +16,5 @@ public class Window {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getWindowTitle'");
     }
+
 }
