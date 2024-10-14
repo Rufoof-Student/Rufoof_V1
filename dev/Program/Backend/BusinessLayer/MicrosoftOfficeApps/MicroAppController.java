@@ -102,10 +102,11 @@ public class MicroAppController {
     public void closeShelfsApps(int id, List<MicroApp> appsToAdd) throws DeveloperException {
         if (!shelfId2App.containsKey(id))
             throw new DeveloperException("in microapp controller there is no shelf with id " + id);
-        if(appsToAdd!=null) addMicroAppToUsedList(appsToAdd, id);
+        if (appsToAdd != null)
+            addMicroAppToUsedList(appsToAdd, id);
         for (MicroApp microApp : shelfId2App.get(id)) {
             Relax.Relax(500);
-            System.out.println("closing "+microApp.getFilePath()+" from shelf "+id);
+            System.out.println("closing " + microApp.getFilePath() + " from shelf " + id);
             microApp.closeApp();
         }
     }
@@ -117,6 +118,15 @@ public class MicroAppController {
             Relax.Relax(500);
             microApp.openApp();
         }
+    }
+
+    public List<MicroApp> getShelfApps(int id) {
+        return shelfId2App.get(id) == null ? new ArrayList<>() : shelfId2App.get(id);
+    }
+
+    public void setShelfApps(int id, List<MicroApp> apps) {
+        if (apps != null)
+            shelfId2App.put(id, apps);
     }
 
 }
