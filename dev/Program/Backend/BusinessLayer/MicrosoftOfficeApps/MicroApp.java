@@ -163,6 +163,12 @@ public abstract class MicroApp extends Window{
         return fileName;
     }
 
+
+    @Override
+    public String getWindowTitle(){
+        return fileName;
+    }
+
     public String getBlankAppName(){
         return blankAppName;
     }

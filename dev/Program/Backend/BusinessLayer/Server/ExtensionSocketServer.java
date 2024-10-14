@@ -12,8 +12,10 @@ import com.google.gson.internal.LinkedHashTreeMap;
 
 import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
 import dev.Program.DTOs.*;
+import dev.Program.DTOs.Exceptions.DeveloperException;
 
 import org.java_websocket.WebSocket;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.java_websocket.handshake.ClientHandshake;
 
 import java.net.InetSocketAddress;
@@ -155,7 +157,9 @@ public class ExtensionSocketServer extends WebSocketServer {
         return engineName.equals("chrome.exe") ? chrome != null : edge != null;
     }
 
+
     public GroupPack createGroups(List<Group> groups, String engineName) {
+
         if (groups.size() == 0)
             return new GroupPack();
         Group[] groupsAsArray = new Group[groups.size()];
@@ -186,7 +190,9 @@ public class ExtensionSocketServer extends WebSocketServer {
         return groupsAsArray;
     }
 
+
     public List<Group> closeAllGroups(List<Group> groupsToClose, String engineName) {
+
         Group[] groupsAsArray = getGroupAsArray(groupsToClose);
         synchronized (lock) {
             Answer answer = sendAndReciveQeustion("closeAllGroups", gson.toJson(groupsAsArray), "closed", engineName);
@@ -204,14 +210,18 @@ public class ExtensionSocketServer extends WebSocketServer {
         }
     }
 
+
     private Answer sendAndReciveQeustion(String type, String data, String resType, String engineName) {
+
 
         System.out.println("data sent to client :" + data);
         WebSocket con = engineName.equals("chrome.exe") ? chrome : edge;
         if (con == null)
-            return null;
+            throw new DeveloperException("There is no connection with requested engine :"+engineName+". chrome is null?"+(chrome==null)+" . eedge is null?"+(edge==null));
         Question question = new Question(type, data);
+       
         con.send(gson.toJson(question));
+
         while (responses.size() == 0)
             try {
                 lock.wait();
@@ -220,7 +230,7 @@ public class ExtensionSocketServer extends WebSocketServer {
             }
         Answer answer = responses.remove();
         if (!answer.type.equals(resType))
-            return null;
+            throw new DeveloperException("the answer type recieved is \""+answer.type+"\" and not "+resType);
         return answer;
     }
 
