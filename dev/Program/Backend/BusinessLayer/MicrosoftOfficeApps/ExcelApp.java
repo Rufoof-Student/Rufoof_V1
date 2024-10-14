@@ -39,4 +39,9 @@ public class ExcelApp extends MicroApp {
         return false;
     }
 
+    @Override
+    public String getWindowTitle(){
+        return getFileName();
+    }
+
 }

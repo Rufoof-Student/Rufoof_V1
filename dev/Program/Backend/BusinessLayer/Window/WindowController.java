@@ -25,8 +25,10 @@ public class WindowController {
     
 
     public Shelf addGroupsToShelf(Shelf toCreate, List<Group> tabsToInclude,String chromeEngineName) {
+        if(tabsToInclude==null||tabsToInclude.size()==0) return toCreate;
         for (Group group : tabsToInclude) {
             group.setShelfProperties(toCreate);
+            System.out.println(chromeEngineName+":"+group.getTabs().size());
         }
         ChromeExtracion ext = getExt(chromeEngineName);
         ext.createNewGroups(toCreate.getId(), tabsToInclude);

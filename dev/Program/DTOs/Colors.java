@@ -1,5 +1,7 @@
 package dev.Program.DTOs;
 
+import java.util.*;
+
 public enum Colors {
     GREY("grey", 128, 128, 128),
     BLUE("blue", 0, 0, 255),
@@ -56,6 +58,15 @@ public enum Colors {
 
     public int getB() {
         return b;
+    }
+
+    public static List<Colors> getAllColors(){
+        List<Colors> toRet  = new ArrayList<>();
+        for (Colors color : Colors.values()) {
+            toRet.add(color);
+            System.out.println(color.colorName);
+        }
+        return toRet;
     }
 
     @Override
