@@ -273,4 +273,23 @@ public class ChromeExtracion {
 
     }
 
+    public List<Group> getShelfGroups(int id) {
+        
+        List<Group> toRet = new ArrayList<>();
+        if(shelfId2Group.get(id)!=null ) {
+            toRet=shelfId2Group.get(id).getList();
+        }
+        
+        return toRet;
+        
+    }
+
+    public void setShelfGroups(List<Group> groups,int id) {
+            
+        if(shelfId2Group.get(id)!=null ) {
+            shelfId2Group.get(id).setGroups(groups);
+        }
+
+    }
+
 }

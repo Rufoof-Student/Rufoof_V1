@@ -30,6 +30,8 @@ public class ShelfElement extends JXPanel {
     private  final Color BG_COLOR = new Color(41, 51, 97);
     private  final Color BTN_COLOR = new Color(75, 100, 209);
     private final Color elementColor = new Color(25, 36, 125);
+    private JXLabel txt;
+
 
     public ShelfElement(Shelf shelf,MainController mc,Frame frame) {
         super();
@@ -41,7 +43,7 @@ public class ShelfElement extends JXPanel {
         setBorder(new RoundedBorder(6));
 
         // Creating a JXLabel to add to the panel
-        JXLabel txt = new JXLabel(shelf.getName());
+        txt = new JXLabel(shelf.getName());
         txt.setAlignmentX(Component.CENTER_ALIGNMENT); // Centering the text horizontally
         txt.setForeground(new Color(255, 255,255));
         // Adding components to the panel
@@ -59,14 +61,20 @@ public class ShelfElement extends JXPanel {
 
         JButton openButton = new JButton("Open");
         JButton closeButton = new JButton("Close");
+        JButton updateButton = new JButton("update");
 
         openButton.setFont(new Font("Arial", Font.PLAIN, 14)); // Adjust font size as needed
         closeButton.setFont(new Font("Arial", Font.PLAIN, 14)); // Adjust font size as needed
+        updateButton.setFont(new Font("Arial", Font.PLAIN, 14)); 
         openButton.setVisible(false);
         closeButton.setVisible(false);
+        updateButton.setVisible(false);
+
         // Add components to the button panel
         buttonPanel.add(openButton);
         buttonPanel.add(closeButton);
+        buttonPanel.add(updateButton);
+        styleButton(updateButton);
         styleButton(openButton);
         styleButton(closeButton);
 
@@ -137,6 +145,37 @@ public class ShelfElement extends JXPanel {
                     e1.printStackTrace();
                 }
                 System.out.println(free.microsoftApps.size());
+            } catch (UserException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+        });
+
+        updateButton.addActionListener(e -> {
+            try {
+                // System.out.println("ShelfElementUI : closing the shelf ");
+                // FreeWindowsToSend free = mainC.getFreeWindows();
+                // CloseshelfHandlerDialog closeHandler=new CloseshelfHandlerDialog(frame, free);
+                // if(!closeHandler.isSubmited()) return;
+                // try {
+                //     mainC.closeShelf(shelf, free);
+                // } catch (DeveloperException e1) {
+                //     // TODO Auto-generated catch block
+                //     e1.printStackTrace();
+                // }
+                // System.out.println(free.microsoftApps.size());
+                FreeWindowsToSend shelfWindows  =mainC.getWindowInShelf(shelf.getId());
+                UpdateShelfHandler handler =  UpdateShelfHandler.initUpdateHandler(frame,shelfWindows,shelf.getName(),shelf.getColorAsEnum());
+                if(!handler.isSubmited()) return ;
+                try{
+                    mainC.updateShelf(shelf.getId(),shelfWindows,handler.getShelfName());
+                    txt.setText(shelf.getName());
+                }catch(UserException ex){
+                    UI.warning(ex.getMessage());
+                }catch(DeveloperException ex){
+                    ex.printStackTrace();
+                }
+
             } catch (UserException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();

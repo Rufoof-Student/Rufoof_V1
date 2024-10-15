@@ -59,4 +59,14 @@ public class WindowController {
     }
 
 
+
+    public List<Group> getShelfGroups(String chromename, int id) {
+        return getExt(chromename).getShelfGroups(id);
+    }
+
+    public void setShelfGroups(String engineName,List<Group> groups,int id){
+        getExt(engineName).setShelfGroups(groups,id);
+    }
+
+
 }
