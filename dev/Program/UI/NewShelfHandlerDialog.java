@@ -25,18 +25,18 @@ import java.util.HashMap;
 import dev.Program.DTOs.Window;
 
 public class NewShelfHandlerDialog extends JDialog {
-    private final Color BG_COLOR = new Color(25, 36, 125);
+    protected final Color BG_COLOR = new Color(25, 36, 125);
     private final Color BTN_COLOR = new Color(75, 100, 209);
-    private JXTextField nameInput;
+    protected JTextField nameInput;
     private String newShelfName;
     private Colors chosenColor;
     private boolean submited;
-    private JList<Colors> colorList;
+    protected JList<Colors> colorList;
 
     private FreeWindowsToSend freeWindowsToSend;
-    private Map<Group, List<JCheckBox>> chrommeCheckBoxs;
-    private Map<Group, List<JCheckBox>> edgeCheckBoxs;
-    private Map<MicroApp, JCheckBox> microAppCheckBoxs;
+    protected Map<Group, List<JCheckBox>> chrommeCheckBoxs;
+    protected Map<Group, List<JCheckBox>> edgeCheckBoxs;
+    protected Map<MicroApp, JCheckBox> microAppCheckBoxs;
 
     private void setProbs() {
         setLocationRelativeTo(null);
@@ -77,7 +77,7 @@ public class NewShelfHandlerDialog extends JDialog {
         // }
     }
 
-    private void setInputBtns() {
+    protected JXPanel setInputBtns() {
         JXPanel btnsPanel = new JXPanel();
         btnsPanel.setLayout(new BoxLayout(btnsPanel, BoxLayout.Y_AXIS));
         btnsPanel.setBackground(BG_COLOR);
@@ -85,6 +85,16 @@ public class NewShelfHandlerDialog extends JDialog {
         inputNameTitle.setForeground(new Color(255, 255, 255));
         nameInput = new JXTextField();
         nameInput.setPreferredSize(new Dimension(30, 25));
+        setListColor(btnsPanel);
+        btnsPanel.add(nameInput, BoxLayout.X_AXIS);
+        btnsPanel.add(inputNameTitle, BoxLayout.X_AXIS);
+        btnsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        add(btnsPanel, BorderLayout.NORTH);
+        return btnsPanel;
+
+    }
+
+    protected void setListColor(JXPanel btnsPanel){
         DefaultListModel<Colors> listModel = new DefaultListModel<>();
         for (Colors color : Colors.getAllColors()) {
             listModel.addElement(color);
@@ -95,11 +105,6 @@ public class NewShelfHandlerDialog extends JDialog {
         JScrollPane scrollPane = new JScrollPane(colorList);
         scrollPane.setPreferredSize(new Dimension(150, 70));
         btnsPanel.add(scrollPane);
-
-        btnsPanel.add(nameInput, BoxLayout.X_AXIS);
-        btnsPanel.add(inputNameTitle, BoxLayout.X_AXIS);
-        btnsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        add(btnsPanel, BorderLayout.NORTH);
 
     }
 
@@ -192,7 +197,7 @@ public class NewShelfHandlerDialog extends JDialog {
         return CloseButton;
     }
 
-    private void setCheckBoxs(JPanel panel, List<JCheckBox> checkBoxs) {
+    public void setCheckBoxs(JPanel panel, List<JCheckBox> checkBoxs) {
         chrommeCheckBoxs = new HashMap<>();
         edgeCheckBoxs = new HashMap<>();
         listTabsWindows(freeWindowsToSend.chromeGroups, panel, chrommeCheckBoxs);

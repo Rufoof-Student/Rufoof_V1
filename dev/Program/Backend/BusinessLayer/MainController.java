@@ -108,10 +108,11 @@ public class MainController {
         return shelfWindows;
     }
     
-    public void updateShelf(int id , FreeWindowsToSend newShelfWindows){
+    public void updateShelf(int id , FreeWindowsToSend newShelfWindows,String shelfName){
         windowController.setShelfGroups(edgeName, newShelfWindows.edgeGroups, id);
         windowController.setShelfGroups(chromeName, newShelfWindows.chromeGroups, id);
         microAppsController.setShelfApps(id, newShelfWindows.microsoftApps);
+        shelfcController.updateShelfName(id,shelfName);
     }
 
 

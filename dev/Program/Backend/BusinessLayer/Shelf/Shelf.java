@@ -36,6 +36,10 @@ public class Shelf {
     public String getColor() {
         return color.getColorName();
     }
+    public Colors getColorAsEnum(){
+        return color;
+    }
+
 
     // public void setGroups(GroupPack groups2) {
     //     groups=groups2;
@@ -71,6 +75,10 @@ public class Shelf {
     public void markAsClosed() {
         // groups.markAsClosed();
         isOpen=false;
+    }
+
+    public void setName(String shelfName) {
+        name=shelfName;
     }
 
    
