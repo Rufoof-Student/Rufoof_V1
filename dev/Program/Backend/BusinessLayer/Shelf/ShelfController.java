@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import dev.Program.Backend.DALayer.MainDBControlers.ShelfControllerDB;
 import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.Exceptions.DeveloperException;
 
@@ -13,8 +14,16 @@ public class ShelfController {
     private int idCounter;
 
     public ShelfController(){
-        idCounter=-1;
-        shelfs = new LinkedHashMap<>();
+        shelfs = ShelfControllerDB.getAllShelfs();
+        idCounter=getMaxId();
+    }
+
+    private int getMaxId() {
+        int maxId = 0;
+        for (Integer shelfId : shelfs.keySet()) {
+            maxId = maxId>shelfId?maxId:shelfId;
+        }    
+        return maxId;
     }
 
     public Shelf getNewShelf(String name, Colors color) {
@@ -26,6 +35,7 @@ public class ShelfController {
             throw new DeveloperException("trying to save the same key on shelf controller");
         }
         shelfs.put(toSave.getId(), toSave);
+        ShelfControllerDB.saveShelf(toSave);
     }
 
     public List<Shelf> getAllShelfsAsList() {

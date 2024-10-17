@@ -4,6 +4,7 @@ import java.util.Map;
 
 import dev.Program.Backend.BusinessLayer.Process.ProcessController;
 import dev.Program.Backend.BusinessLayer.Process.ProcessObj;
+import dev.Program.Backend.DALayer.MainDBControlers.MicrosoftAppsDBController;
 import dev.Program.DTOs.Relax;
 import dev.Program.DTOs.Exceptions.DeveloperException;
 
@@ -18,7 +19,10 @@ public class MicroAppController {
 
     public MicroAppController(List<Integer> shelfsIds) {
         for (Integer id : shelfsIds) {
-            shelfId2App.put(id, new ArrayList<>());
+            shelfId2App.put(id, MicrosoftAppsDBController.getAllAppsOnShelf(id));
+        }
+        for (List<MicroApp> appsOnShelf : shelfId2App.values()) {
+            appsOnUsage.addAll(appsOnShelf);
         }
     }
 
@@ -38,8 +42,14 @@ public class MicroAppController {
     public void addMicroAppToUsedList(List<MicroApp> appsToAdd, int shelfId) {
         appsOnUsage.addAll(appsToAdd);
         if (!shelfId2App.containsKey(shelfId))
+            // throw new DeveloperException("trying to add apps ")
             shelfId2App.put(shelfId, new ArrayList<>());
+        
+        for (MicroApp microApp : appsToAdd) {
+            microApp.addAppToShelf(shelfId);
+        }
         shelfId2App.get(shelfId).addAll(appsToAdd);
+        MicrosoftAppsDBController.addMicroAppsToShelf(shelfId, appsToAdd);
     }
 
     public void removeAppsFromShelf(List<MicroApp> apps, int shelfId) throws DeveloperException {
@@ -47,6 +57,7 @@ public class MicroAppController {
         if (!shelfId2App.containsKey(shelfId))
             throw new DeveloperException("trying to remove micro apps from shelf id that not exist");
         shelfId2App.get(shelfId).removeAll(apps);
+        MicrosoftAppsDBController.removeAppsFromShelf(shelfId, apps);
     }
 
     public void createShelf(int id) throws DeveloperException {
@@ -102,10 +113,11 @@ public class MicroAppController {
     public void closeShelfsApps(int id, List<MicroApp> appsToAdd) throws DeveloperException {
         if (!shelfId2App.containsKey(id))
             throw new DeveloperException("in microapp controller there is no shelf with id " + id);
-        if(appsToAdd!=null) addMicroAppToUsedList(appsToAdd, id);
+        if (appsToAdd != null)
+            addMicroAppToUsedList(appsToAdd, id);
         for (MicroApp microApp : shelfId2App.get(id)) {
             Relax.Relax(500);
-            System.out.println("closing "+microApp.getFilePath()+" from shelf "+id);
+            System.out.println("closing " + microApp.getFilePath() + " from shelf " + id);
             microApp.closeApp();
         }
     }

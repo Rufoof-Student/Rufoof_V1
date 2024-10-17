@@ -11,8 +11,7 @@ import dev.Program.DTOs.*;
 import dev.Program.DTOs.Exceptions.UserException;
 
 public class WindowController {
-    private List<WindowType> types;
-    private Map<WindowType,Extraction> extractions;
+    
     private ChromeExtracion extChrome ;
     private ChromeExtracion extEdg;
     public WindowController(List<Shelf> shelfs){

@@ -13,6 +13,7 @@ import java.nio.file.Files;
 
 import dev.Program.Backend.BusinessLayer.Process.ProcessController;
 import dev.Program.Backend.BusinessLayer.Process.ProcessObj;
+import dev.Program.Backend.DALayer.MainDBControlers.MicrosoftAppsDBController;
 import dev.Program.DTOs.Window;
 import dev.Program.DTOs.Exceptions.UserException;
 
@@ -21,6 +22,8 @@ public abstract class MicroApp extends Window{
     public MicroApp(String appName) {
         super(appName);
     }
+
+    protected int shelfIdForApp = -1;
 
     protected String fileFormat;
 
@@ -153,6 +156,7 @@ public abstract class MicroApp extends Window{
                else Dispatch.call(windowToClose, closeReq);
             fileIsOpened = false;
             ProcessController.removeBlankApp(blankAppName, exeName);
+            MicrosoftAppsDBController.setAppAsClosed(shelfIdForApp,filePath);
         }
     }
 
@@ -175,5 +179,9 @@ public abstract class MicroApp extends Window{
 
     protected  String getFilePath(){
         return filePath;
+    }
+
+    public void addAppToShelf(int shelfId){
+        this.shelfIdForApp = shelfId;
     }
 }
