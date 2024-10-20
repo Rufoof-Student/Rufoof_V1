@@ -1,6 +1,9 @@
 package dev.Program.DTOs;
 
 import java.util.List;
+
+import dev.Program.Backend.DALayer.DBs.GroupDB;
+
 import java.util.ArrayList;
 
 public class GroupPack {
@@ -12,6 +15,13 @@ public class GroupPack {
 
     public GroupPack(){
         groups=new ArrayList<>();
+    }
+
+    public GroupPack(List<GroupDB> chromeGroups,String appName,int shelfId,String color,String name) {
+        this();
+        for (GroupDB groupDB : chromeGroups) {
+            groups.add(new Group(groupDB,appName, shelfId, color, name));
+        }
     }
 
     public void getDiffGroups(GroupPack groupPack2){

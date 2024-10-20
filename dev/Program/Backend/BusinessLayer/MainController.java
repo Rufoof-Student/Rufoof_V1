@@ -1,8 +1,6 @@
 package dev.Program.Backend.BusinessLayer;
 
-import java.util.ArrayList;
 import java.util.*;
-import java.util.Scanner;
 
 import org.checkerframework.checker.units.qual.m;
 
@@ -12,6 +10,9 @@ import dev.Program.Backend.BusinessLayer.Process.ProcessController;
 import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
 import dev.Program.Backend.BusinessLayer.Shelf.ShelfController;
 import dev.Program.Backend.BusinessLayer.Window.WindowController;
+import dev.Program.Backend.DALayer.DAOs.Reader;
+import dev.Program.Backend.DALayer.DAOs.Writer;
+import dev.Program.Backend.DALayer.DBs.ShelfDB;
 import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.FreeWindowsToSend;
 import dev.Program.DTOs.Group;
@@ -26,16 +27,18 @@ public class MainController {
     private ShelfController shelfcController;
     private WindowController windowController;
     private MicroAppController microAppsController;
+    private Reader Reader = new Reader();
+    private Writer Writer = new Writer();
 
     private static final String chromeName = "chrome.exe";
     private static final String edgeName = "msedge.exe";
 
     public MainController() {
-        shelfcController = new ShelfController();
-        windowController = new WindowController(shelfcController.getAllShelfsAsList());
+        List<ShelfDB> allShelfsFromDB = Reader.getAllShelfs();
+        shelfcController = new ShelfController(allShelfsFromDB);
+        windowController = new WindowController(allShelfsFromDB);
         processController = new ProcessController();
-        microAppsController = new MicroAppController(
-                shelfcController.getAllShelfsAsList().stream().map((s) -> s.getId()).toList());
+        microAppsController = new MicroAppController(allShelfsFromDB);
         ProcessController.initProcesses();
     }
 
@@ -71,6 +74,8 @@ public class MainController {
         microAppsController.addMicroAppToUsedList(freeWindowsToSend.microsoftApps, toCreate.getId());
 
         shelfcController.saveShelf(toCreate);
+        Writer.updateShelfMicroApps(toCreate.getId(),microAppsController.getShelfApps(toCreate.getId()));
+        windowController.persistWindows(toCreate.getId());
         return toCreate;
     }
 
