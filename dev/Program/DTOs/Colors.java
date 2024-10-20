@@ -13,6 +13,11 @@ public enum Colors {
     CYAN("cyan", 0, 255, 255),
     ORANGE("orange", 255, 165, 0);
 
+    
+    public static Colors valueOfColor(String str){
+        return Colors.BLUE;
+    }
+
     private final String colorName;
     private final int r;
     private final int g;

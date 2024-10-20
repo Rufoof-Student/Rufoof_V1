@@ -150,23 +150,6 @@ public class ProcessController {
    
     public static void main(String[] args) {
         initProcesses();
-        // removeBlankApp("Word", "WINWORD.EXE");
-        // User32.INSTANCE.EnumWindows(new WinUser.WNDENUMPROC() {
-        // @Override
-        // public boolean callback(WinDef.HWND hwnd, Pointer arg1) {
-        // char[] windowText = new char[512];
-        // User32.INSTANCE.GetWindowText(hwnd, windowText, 512);
-        // String wText = Native.toString(windowText);
-
-        // // Filter by Adobe Reader or any PDF viewer
-        // if (!wText.isEmpty()
-        // && (wText.contains(".pdf") || wText.contains("Adobe Reader") ||
-        // wText.contains("Edge"))) {
-        // System.out.println("Window title: " + wText);
-        // }
-        // return true;
-        // }
-        // }, null);
     }
 
     public static List<ProcessObj> getRunningProccesses() {

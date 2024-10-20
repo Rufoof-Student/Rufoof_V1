@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import dev.Program.Backend.BusinessLayer.Server.TabToSendSocket;
+import dev.Program.Backend.DALayer.DBs.TabDB;
 
 public class Tab {
     private String url;
@@ -37,6 +38,11 @@ public class Tab {
     }
 
 
+    public Tab(TabDB tabDB) {
+        url = tabDB.url;
+        title = tabDB.title;
+        nativeTabId = tabDB.nativeTabId;
+    }
     @Override
     public String toString(){
         return "Tab with id:"+nativeTabId+",title:"+title+",url: "+url+",windowId:"+nativeWindowId;
@@ -106,5 +112,12 @@ public class Tab {
     public void markAsClosed() {
         nativeTabId=null;
         nativeWindowId = null;
+    }
+    public static List<Tab> DeserelizeFromDB(List<TabDB> tabs) {
+        List<Tab> res = new ArrayList<>();
+        for (TabDB tabDB : tabs) {
+            res.add(new Tab(tabDB));
+        }
+        return res;
     }
 }

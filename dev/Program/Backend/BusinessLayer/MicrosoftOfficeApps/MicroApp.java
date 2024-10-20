@@ -10,9 +10,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.List;
 
 import dev.Program.Backend.BusinessLayer.Process.ProcessController;
 import dev.Program.Backend.BusinessLayer.Process.ProcessObj;
+import dev.Program.Backend.DALayer.DAOs.Writer;
+import dev.Program.Backend.DALayer.DBs.MicrosoftAppDB;
+// import dev.Program.Backend.DALayer.MainDBControlers.MicrosoftAppsDBController;
 import dev.Program.DTOs.Window;
 import dev.Program.DTOs.Exceptions.UserException;
 
@@ -22,18 +26,23 @@ public abstract class MicroApp extends Window{
         super(appName);
     }
 
+    protected int shelfIdForApp = -1;
+
     protected String fileFormat;
 
     protected String appName;
 
+    //to init from db
     protected String filePath;
 
+    //to init from db
     protected String fileName;
 
     protected String blankAppName;
 
     protected String exeName;
 
+    //to init from db
     protected boolean fileIsOpened;
 
     protected String docType;
@@ -153,6 +162,7 @@ public abstract class MicroApp extends Window{
                else Dispatch.call(windowToClose, closeReq);
             fileIsOpened = false;
             ProcessController.removeBlankApp(blankAppName, exeName);
+            // Writer.setAppAsClosed(shelfIdForApp,filePath);
         }
     }
 
@@ -164,7 +174,7 @@ public abstract class MicroApp extends Window{
     }
 
 
-    @Override
+    // @Override
     public String getWindowTitle(){
         return fileName;
     }
@@ -173,7 +183,25 @@ public abstract class MicroApp extends Window{
         return blankAppName;
     }
 
-    protected  String getFilePath(){
+    public  String getFilePath(){
         return filePath;
+    }
+
+    public void addAppToShelf(int shelfId){
+        this.shelfIdForApp = shelfId;
+    }
+
+    public String getExeName() {
+        return exeName;
+    }
+
+    public boolean getIsOpen() {
+        return fileIsOpened;
+    }
+
+    public void setDataFromDB(MicrosoftAppDB appFromDB){
+        fileIsOpened = appFromDB.isOpen;
+        setProps(appFromDB.filePath);
+        
     }
 }

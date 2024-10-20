@@ -4,20 +4,30 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
+import dev.Program.Backend.DALayer.DAOs.Writer;
+import dev.Program.Backend.DALayer.DBs.ShelfDB;
 import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.Exceptions.DeveloperException;
 import dev.Program.DTOs.Exceptions.UserException;
 
 public class ShelfController {
     private Map<Integer, Shelf> shelfs;
-    private int idCounter;
-
-    public ShelfController(){
-        idCounter=-1;
-        shelfs = new LinkedHashMap<>();
+    private int idCounter=0;
+    private Writer Writer=new Writer();
+    
+    public ShelfController(List<ShelfDB> allShelfsFromDB) {
+        shelfs = new HashMap<>();
+        for (ShelfDB shelfDB : allShelfsFromDB) {
+            Shelf shelfToAdd = new Shelf(shelfDB); 
+            shelfs.put(shelfToAdd.getId(),shelfToAdd);
+            idCounter = idCounter<shelfToAdd.getId()?shelfToAdd.getId():idCounter;
+        }
+        idCounter++;
     }
 
+ 
     public Shelf getNewShelf(String name, Colors color) {
         return new Shelf(name, idCounter++ , color);
     }
@@ -27,6 +37,7 @@ public class ShelfController {
             throw new DeveloperException("trying to save the same key on shelf controller");
         }
         shelfs.put(toSave.getId(), toSave);
+        Writer.persistShelf(toSave);
     }
 
     public List<Shelf> getAllShelfsAsList() {

@@ -8,6 +8,7 @@ import dev.Program.Backend.BusinessLayer.Process.ProcessController;
 import dev.Program.Backend.BusinessLayer.Server.ChromeWindowToSendSocket;
 import dev.Program.Backend.BusinessLayer.Server.ExtensionSocketServer;
 import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
+import dev.Program.Backend.DALayer.DBs.ShelfDB;
 import dev.Program.DTOs.ChromeWindow;
 import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.Group;
@@ -25,15 +26,17 @@ public class ChromeExtracion {
     private ExtensionSocketServer server;
     private List<ChromeWindow> runningWindows;
     private int idCounter;
-    private String chromeEngineName ;
-    private Map<Integer,GroupPack> shelfId2Group=new HashMap<>();
+    private String chromeEngineName;
+    private Map<Integer, GroupPack> shelfId2Group = new HashMap<>();
 
-
-    public ChromeExtracion(ExtensionSocketServer server,String engineName,List<Shelf> shelfsInSystem) {
+    public ChromeExtracion(ExtensionSocketServer server, String engineName, List<ShelfDB> shelfsInSystem) {
         this.server = server;
         chromeEngineName = engineName;
-        for (Shelf shelf : shelfsInSystem) {
-            shelfId2Group.put(shelf.getId(), new GroupPack());
+        for (ShelfDB shelf : shelfsInSystem) {
+            GroupPack group = engineName == "chrome.exe"
+                    ? new GroupPack(shelf.chromeGroups, "Chrome", shelf.shelfId, shelf.shelfColor, shelf.shelfName)
+                    : new GroupPack(shelf.edgeGroups, "Edge", shelf.shelfId, shelf.shelfColor, shelf.shelfName);
+            shelfId2Group.put(shelf.shelfId, group);
         }
     }
 
@@ -46,7 +49,7 @@ public class ChromeExtracion {
      * @return the shelf with updated group information.
      */
     public void createNewGroups(int id, List<Group> groups) {
-        
+
         for (Group group : groups) {
             // group.setShelfProperties(shelf);
             if (group.getGeneratedId() == -1) {
@@ -54,7 +57,7 @@ public class ChromeExtracion {
                 idCounter++;
             }
         }
-        GroupPack openedGroup = server.createGroups(groups,chromeEngineName);
+        GroupPack openedGroup = server.createGroups(groups, chromeEngineName);
         // shelf.initGroupPack(openedGroup);
         shelfId2Group.put(id, openedGroup);
 
@@ -66,20 +69,21 @@ public class ChromeExtracion {
      * 
      * @param shelf the shelf whose groups will be opened.
      * @return the shelf with updated data, such as group IDs.
-     * @throws UserException 
+     * @throws UserException
      */
-    public Shelf runShelf(Shelf shelf) throws UserException {
+    public GroupPack runShelf(Shelf shelf) throws UserException {
         int id = shelf.getId();
-        if(!shelfId2Group.containsKey(id)|| shelfId2Group.get(id).size()==0) return shelf;
-        if(!insureConnection() ){
+        if (!shelfId2Group.containsKey(id) || shelfId2Group.get(id).size() == 0)
+            return new GroupPack();
+        if (!insureConnection()) {
             ProcessController.runChrome(chromeEngineName);
         }
         GroupPack groupsToOpen = shelfId2Group.get(id);
-        groupsToOpen.setGroups(server.runAllGroups(groupsToOpen.getList(), shelf,chromeEngineName));
+        groupsToOpen.setGroups(server.runAllGroups(groupsToOpen.getList(), shelf, chromeEngineName));
         // TODO - update shelf data
         // shelf.setGroups(groupsToOpen);
         server.filterEmptyTabs(chromeEngineName);
-        return shelf;
+        return shelfId2Group.get(id);
     }
 
     /**
@@ -89,13 +93,12 @@ public class ChromeExtracion {
      * @param shelf          the shelf containing the groups and tabs.
      * @param groupsToUpdate the tabs to be added and/or closed.
      * @return the shelf with updated group and tab data.
-     * @throws UserException 
+     * @throws UserException
      */
-    public Shelf closeShelf(Shelf shelf, List<Group> groupsToUpdate) throws UserException {
+    public GroupPack closeShelf(Shelf shelf, List<Group> groupsToUpdate) throws UserException {
 
-
-        if(shelfId2Group.get(shelf.getId())==null||shelfId2Group.get(shelf.getId()).getList().size()==0)
-            return shelf;
+        if (shelfId2Group.get(shelf.getId()) == null || shelfId2Group.get(shelf.getId()).getList().size() == 0)
+            return new GroupPack();
 
         System.out.println("we have to update and close the shelf");
 
@@ -105,36 +108,35 @@ public class ChromeExtracion {
 
         System.out.println("done dealing with groups");
         if (insureConnection() && shelfId2Group.containsKey(shelf.getId())) {
-            
 
-            server.closeAllGroups(shelfId2Group.get(shelf.getId()).getList(),chromeEngineName);
+            server.closeAllGroups(shelfId2Group.get(shelf.getId()).getList(), chromeEngineName);
             shelfId2Group.get(shelf.getId()).markAsClosed();
         }
         System.out.println("we have to filter empty tabs");
         server.filterEmptyTabs(chromeEngineName);
         System.out.println("all tabs must be closed");
-        return shelf;
+        return shelfId2Group.get(shelf.getId());
 
     }
 
-    private void updateShelfTabsURLs(int ShelfId){
+    private void updateShelfTabsURLs(int ShelfId) {
         for (Group group : shelfId2Group.get(ShelfId).getList()) {
             for (Tab tab : group.getTabs()) {
                 String id = tab.getNativeTabId();
-                if(id!=null){ 
-                    String newDataAsJson = server.getUpdatedDataForTabAsJSON(id,chromeEngineName);
+                if (id != null) {
+                    String newDataAsJson = server.getUpdatedDataForTabAsJSON(id, chromeEngineName);
                     tab.updateData(newDataAsJson);
                 }
             }
         }
     }
 
-
     private void dealWithGroups(Shelf shelf, List<Group> groupsToUpdate) {
         List<Group> groupsToCreate = new ArrayList<>();
         for (Group groupToAdd : groupsToUpdate) {
             Group currGroup;
-            if (shelfId2Group.containsKey(shelf.getId())&& (currGroup = shelfId2Group.get(shelf.getId()).contains(groupToAdd)) != null) {
+            if (shelfId2Group.containsKey(shelf.getId())
+                    && (currGroup = shelfId2Group.get(shelf.getId()).contains(groupToAdd)) != null) {
                 currGroup.addTabs(groupToAdd.getTabs());
             } else {
                 groupToAdd.setShelfProperties(shelf);
@@ -146,7 +148,7 @@ public class ChromeExtracion {
     }
 
     private void insertNewGroups(List<Group> newGroups, int id) {
-        GroupPack diffGroups = server.createGroups(newGroups,chromeEngineName);
+        GroupPack diffGroups = server.createGroups(newGroups, chromeEngineName);
         // shelf.addForiegnGroups(diffGroups);
         shelfId2Group.get(id).addForiegnGroups(diffGroups);
     }
@@ -155,7 +157,7 @@ public class ChromeExtracion {
      * Returns all tabs that are not assigned to any group.
      * 
      * @return a list of ungrouped (free) tabs.
-     * @throws UserException 
+     * @throws UserException
      */
     public List<Group> getFreeTabs() throws UserException {
         if (!insureConnection()) {
@@ -163,8 +165,8 @@ public class ChromeExtracion {
             return new ArrayList<>();
         }
 
-        List<Group> toRet =server.getCurrentFreeTabs(chromeEngineName);
-        System.out.println(toRet==null);
+        List<Group> toRet = server.getCurrentFreeTabs(chromeEngineName);
+        System.out.println(toRet == null);
         server.filterEmptyTabs(chromeEngineName);
         return toRet;
 
@@ -194,83 +196,90 @@ public class ChromeExtracion {
         // Scanner sc = new Scanner(System.in);
         // List<Shelf> shelfs = new ArrayList<>();
         // int idCounter = 0;
-        // Colors[] colors = new Colors[] { Colors.BLUE, Colors.CYAN, Colors.ORANGE, Colors.RED };
+        // Colors[] colors = new Colors[] { Colors.BLUE, Colors.CYAN, Colors.ORANGE,
+        // Colors.RED };
         // Shelf shelf = null;
         // ChromeExtracion c = new ChromeExtracion(s,"");
         // while (true) {
-        //     System.out.println(
-        //             "Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New Groups\n3. Close Shelf\n4. open shelf\n5.create new Shelf\n6.move to shelf \n7.Exit");
-        //     String input = sc.nextLine();
+        // System.out.println(
+        // "Enter a number to execute a function: \n1. Get Free Tabs\n2. Create New
+        // Groups\n3. Close Shelf\n4. open shelf\n5.create new Shelf\n6.move to shelf
+        // \n7.Exit");
+        // String input = sc.nextLine();
 
-        //     try {
-        //         int choice = Integer.parseInt(input);
+        // try {
+        // int choice = Integer.parseInt(input);
 
-        //         switch (choice) {
-        //             case 1:
-        //                 // Get Free Tabs
-        //                 System.out.println("Getting free tabs...");
-        //                 List<Group> freeTabs = c.getFreeTabs();
-        //                 System.out.println("Free tabs retrieved: " + freeTabs.size());
-        //                 break;
+        // switch (choice) {
+        // case 1:
+        // // Get Free Tabs
+        // System.out.println("Getting free tabs...");
+        // List<Group> freeTabs = c.getFreeTabs();
+        // System.out.println("Free tabs retrieved: " + freeTabs.size());
+        // break;
 
-        //             case 2:
-        //                 // Create New Groups
-        //                 System.out.println("Creating new groups...");
-        //                 List<Group> free = c.getFreeTabs(); // Assuming free tabs are used here
-        //                 c.createNewGroups(shelf, free);
-        //                 System.out.println("New groups created.");
-        //                 break;
+        // case 2:
+        // // Create New Groups
+        // System.out.println("Creating new groups...");
+        // List<Group> free = c.getFreeTabs(); // Assuming free tabs are used here
+        // c.createNewGroups(shelf, free);
+        // System.out.println("New groups created.");
+        // break;
 
-        //             case 3:
-        //                 // Close Shelf
-        //                 System.out.println("Closing shelf...");
-        //                 c.closeShelf(shelf, new ArrayList<>());
-        //                 System.out.println("Shelf closed.");
-        //                 for (Group group : shelf.getGroups().getList()) {
-        //                     System.out.println("group collected:");
-        //                     for (Tab tab : group.getTabs()) {
-        //                         System.out.println(tab);
-        //                     }
-        //                 }
-        //                 break;
+        // case 3:
+        // // Close Shelf
+        // System.out.println("Closing shelf...");
+        // c.closeShelf(shelf, new ArrayList<>());
+        // System.out.println("Shelf closed.");
+        // for (Group group : shelf.getGroups().getList()) {
+        // System.out.println("group collected:");
+        // for (Tab tab : group.getTabs()) {
+        // System.out.println(tab);
+        // }
+        // }
+        // break;
 
-        //             case 4:
-        //                 c.runShelf(shelf);
-        //                 break;
-        //             case 5:
-        //                 System.out.println("set the name and the color of the shelf:");
-        //                 String name = sc.nextLine();
-        //                 String colorNumber = sc.nextLine();
-        //                 int colorIndex = Integer.parseInt(colorNumber);
-        //                 Shelf sh = new Shelf(name, idCounter, colors[colorIndex]);
-        //                 idCounter++;
-        //                 shelfs.add(sh);
-        //                 break;
-        //             case 6:
-        //                 System.out.println("enter shelf number:");
-        //                 int index = Integer.parseInt(sc.nextLine());
-        //                 shelf = shelfs.get(index);
-        //                 break;
-        //             case 7:
-        //                 // Exit loop
-        //                 System.out.println("Exiting...");
-        //                 return;
+        // case 4:
+        // c.runShelf(shelf);
+        // break;
+        // case 5:
+        // System.out.println("set the name and the color of the shelf:");
+        // String name = sc.nextLine();
+        // String colorNumber = sc.nextLine();
+        // int colorIndex = Integer.parseInt(colorNumber);
+        // Shelf sh = new Shelf(name, idCounter, colors[colorIndex]);
+        // idCounter++;
+        // shelfs.add(sh);
+        // break;
+        // case 6:
+        // System.out.println("enter shelf number:");
+        // int index = Integer.parseInt(sc.nextLine());
+        // shelf = shelfs.get(index);
+        // break;
+        // case 7:
+        // // Exit loop
+        // System.out.println("Exiting...");
+        // return;
 
-        //             default:
-        //                 System.out.println("Invalid choice. Please enter a valid number.");
-        //                 break;
-        //         }
-
-        //         // Add sleep after each operation to simulate delay
-        //         Thread.sleep(1000);
-
-        //     } catch (NumberFormatException e) {
-        //         System.out.println("Invalid input. Please enter a valid number.");
-        //     } catch (InterruptedException e) {
-        //         e.printStackTrace();
-        //     }
+        // default:
+        // System.out.println("Invalid choice. Please enter a valid number.");
+        // break;
         // }
 
+        // // Add sleep after each operation to simulate delay
+        // Thread.sleep(1000);
+
+        // } catch (NumberFormatException e) {
+        // System.out.println("Invalid input. Please enter a valid number.");
+        // } catch (InterruptedException e) {
+        // e.printStackTrace();
+        // }
+        // }
+
+    }
+
+    public GroupPack getShelfPack(int id) {
+        return shelfId2Group.get(id);
     }
 
     public List<Group> getShelfGroups(int id) {

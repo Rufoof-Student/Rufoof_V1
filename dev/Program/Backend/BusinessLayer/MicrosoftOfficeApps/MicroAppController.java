@@ -4,6 +4,10 @@ import java.util.Map;
 
 import dev.Program.Backend.BusinessLayer.Process.ProcessController;
 import dev.Program.Backend.BusinessLayer.Process.ProcessObj;
+import dev.Program.Backend.DALayer.DAOs.Writer;
+import dev.Program.Backend.DALayer.DBs.MicrosoftAppDB;
+import dev.Program.Backend.DALayer.DBs.ShelfDB;
+// import dev.Program.Backend.DALayer.MainDBControlers.MicrosoftAppsDBController;
 import dev.Program.DTOs.Relax;
 import dev.Program.DTOs.Exceptions.DeveloperException;
 
@@ -13,12 +17,26 @@ import java.util.ArrayList;
 
 public class MicroAppController {
 
+    private Writer Writer=new Writer();
+
     public List<MicroApp> appsOnUsage = new ArrayList<>();
     public Map<Integer, List<MicroApp>> shelfId2App = new HashMap<>();
 
-    public MicroAppController(List<Integer> shelfsIds) {
-        for (Integer id : shelfsIds) {
-            shelfId2App.put(id, new ArrayList<>());
+    public MicroAppController(List<ShelfDB> shelfsFromDB){
+        for (ShelfDB shelfDB : shelfsFromDB) {
+            int idForShelf = shelfDB.shelfId;
+            List<MicrosoftAppDB> appsOnShelfAsDO = shelfDB.windows;
+            List<MicroApp> appsToAdd = new ArrayList<>();
+            for (MicrosoftAppDB appInShelfAsDO : appsOnShelfAsDO) {
+                MicroApp app =exeNameToMicroApp(appInShelfAsDO.exeName);
+                if(app!=null){
+                    app.setDataFromDB(appInShelfAsDO);
+                    appsToAdd.add(app);
+                    appsOnUsage.add(app);
+                }
+
+            }
+            shelfId2App.put(idForShelf, appsToAdd);
         }
     }
 
@@ -38,8 +56,14 @@ public class MicroAppController {
     public void addMicroAppToUsedList(List<MicroApp> appsToAdd, int shelfId) {
         appsOnUsage.addAll(appsToAdd);
         if (!shelfId2App.containsKey(shelfId))
+            // throw new DeveloperException("trying to add apps ")
             shelfId2App.put(shelfId, new ArrayList<>());
+
+        for (MicroApp microApp : appsToAdd) {
+            microApp.addAppToShelf(shelfId);
+        }
         shelfId2App.get(shelfId).addAll(appsToAdd);
+        
     }
 
     public void removeAppsFromShelf(List<MicroApp> apps, int shelfId) throws DeveloperException {
@@ -47,7 +71,7 @@ public class MicroAppController {
         if (!shelfId2App.containsKey(shelfId))
             throw new DeveloperException("trying to remove micro apps from shelf id that not exist");
         shelfId2App.get(shelfId).removeAll(apps);
-    }
+        Writer.updateShelfMicroApps(shelfId,shelfId2App.get(shelfId));    }
 
     public void createShelf(int id) throws DeveloperException {
 
@@ -64,23 +88,30 @@ public class MicroAppController {
 
     private MicroApp process2MicroApp(ProcessObj processObj) {
         String exeName = processObj.getExeName().toLowerCase();
+        MicroApp result = exeNameToMicroApp(exeName);
+        if(result!=null) result.setPropsFromProcess(processObj);
+        return result;
+    }
+
+    private MicroApp exeNameToMicroApp(String exeName){
         MicroApp toRet;
-        switch (exeName) {
+        switch (exeName.toLowerCase()) {
             case "winword.exe":
                 toRet = new WordApp();
-                toRet.setPropsFromProcess(processObj);
-                return toRet;
+                break;
             case "excel.exe":
                 toRet = new ExcelApp();
-                toRet.setPropsFromProcess(processObj);
-                return toRet;
+                // toRet.setPropsFromProcess(processObj);
+                // return toRet;
+                break;
             case "powerpnt.exe":
                 toRet = new PPApp();
-                toRet.setPropsFromProcess(processObj);
-                return toRet;
+                break;
             default:
                 return null;
         }
+        
+        return toRet;
     }
 
     public static void main(String[] args) {
@@ -109,6 +140,7 @@ public class MicroAppController {
             System.out.println("closing " + microApp.getFilePath() + " from shelf " + id);
             microApp.closeApp();
         }
+        Writer.updateShelfMicroApps(id,shelfId2App.get(id));
     }
 
     public void openAppsForShelf(int id) throws DeveloperException {
@@ -118,6 +150,11 @@ public class MicroAppController {
             Relax.Relax(500);
             microApp.openApp();
         }
+        Writer.updateShelfMicroApps(id,shelfId2App.get(id));
+    }
+
+    public List<MicroApp> getShelfApps(int id) {
+        return shelfId2App.get(id);
     }
 
     public List<MicroApp> getShelfApps(int id) {

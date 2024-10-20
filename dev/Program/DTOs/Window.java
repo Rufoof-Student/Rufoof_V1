@@ -12,9 +12,9 @@ public class Window {
         return appName;
     }
 
-    public String getWindowTitle() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getWindowTitle'");
-    }
+    // public String getWindowTitle() {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'getWindowTitle'");
+    // }
 
 }

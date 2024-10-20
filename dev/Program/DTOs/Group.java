@@ -9,6 +9,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import dev.Program.Backend.BusinessLayer.Shelf.Shelf;
+import dev.Program.Backend.DALayer.DBs.GroupDB;
+import dev.Program.Backend.DALayer.DBs.TabDB;
 
 public class Group extends Window{
     private List<Tab> tabs;
@@ -26,6 +28,14 @@ public class Group extends Window{
         nativeWindowId = nativeWindowId2;
         chromeId = chromeGeneratedId;
         tabs = tabs2;
+    }
+
+    public Group(GroupDB groupDB,String appName,int shelfId,String color,String name) {
+        this(groupDB.nativeWindowId, groupDB.generatedChromeId, Tab.DeserelizeFromDB(groupDB.tabs),appName );
+        groupId = groupDB.groupId;
+        this.color=color;
+        this.shelfId = shelfId;
+        this.name = name;
     }
 
     private static JsonArray parseArrayData(String data) {
@@ -128,11 +138,7 @@ public class Group extends Window{
         }
     }
 
-    public boolean hasDiffTabs(Group group) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'hasDiffTabs'");
-    }
-
+   
     public void union(Group group) {
         this.addTabs(group.getTabs());
     }
@@ -149,6 +155,10 @@ public class Group extends Window{
             return null;
         }
         return this;
+    }
+
+    public String getGroupId() {
+        return groupId;    
     }
 
 }
