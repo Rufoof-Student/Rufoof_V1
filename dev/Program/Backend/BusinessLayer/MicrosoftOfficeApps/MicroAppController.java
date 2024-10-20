@@ -157,4 +157,13 @@ public class MicroAppController {
         return shelfId2App.get(id);
     }
 
+    public List<MicroApp> getShelfApps(int id) {
+        return shelfId2App.get(id) == null ? new ArrayList<>() : shelfId2App.get(id);
+    }
+
+    public void setShelfApps(int id, List<MicroApp> apps) {
+        if (apps != null)
+            shelfId2App.put(id, apps);
+    }
+
 }

@@ -10,6 +10,7 @@ import dev.Program.Backend.DALayer.DAOs.Writer;
 import dev.Program.Backend.DALayer.DBs.ShelfDB;
 import dev.Program.DTOs.Colors;
 import dev.Program.DTOs.Exceptions.DeveloperException;
+import dev.Program.DTOs.Exceptions.UserException;
 
 public class ShelfController {
     private Map<Integer, Shelf> shelfs;
@@ -45,5 +46,11 @@ public class ShelfController {
             toRet.add(shelf);
         }
         return toRet;
+    }
+
+    public void updateShelfName(int id, String shelfName) {
+        if(shelfName==null || shelfName=="") throw new UserException("Cant set empty shelf name");
+        if(!shelfs.containsKey(id)) throw new DeveloperException("shelf id is not exist "+id);
+        shelfs.get(id).setName(shelfName);
     }
 }

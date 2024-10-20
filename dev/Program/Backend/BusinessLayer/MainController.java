@@ -105,6 +105,20 @@ public class MainController {
 
     }
     
+    public FreeWindowsToSend getWindowInShelf(int id){
+        FreeWindowsToSend shelfWindows= new FreeWindowsToSend();
+        shelfWindows.chromeGroups = windowController.getShelfGroups(chromeName,id);
+        shelfWindows.edgeGroups = windowController.getShelfGroups(edgeName, id);
+        shelfWindows.microsoftApps = microAppsController.getShelfApps(id);
+        return shelfWindows;
+    }
     
+    public void updateShelf(int id , FreeWindowsToSend newShelfWindows,String shelfName){
+        windowController.setShelfGroups(edgeName, newShelfWindows.edgeGroups, id);
+        windowController.setShelfGroups(chromeName, newShelfWindows.chromeGroups, id);
+        microAppsController.setShelfApps(id, newShelfWindows.microsoftApps);
+        shelfcController.updateShelfName(id,shelfName);
+    }
+
 
 }

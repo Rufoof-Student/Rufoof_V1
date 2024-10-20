@@ -43,12 +43,17 @@ public class Shelf {
     public String getColor() {
         return color.getColorName();
     }
+    public Colors getColorAsEnum(){
+        return color;
+    }
+
 
 
     public void markAsClosed() {
         // groups.markAsClosed();
         isOpen=false;
     }
+
 
     public boolean getIsOpen() {
         return isOpen;    
@@ -57,6 +62,11 @@ public class Shelf {
     public String getNote() {
         return note;
     }
+
+    public void setName(String shelfName) {
+        name=shelfName;
+    }
+
 
 
 }
